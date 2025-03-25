@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface EmpiricalCoefficientRepository extends JpaRepository<EmpiricalCoefficient, UUID> {
     Optional<EmpiricalCoefficient> findByCoefficientName(String coefficientName);
     boolean existsByCoefficientName(String coefficientName);
+
 }
