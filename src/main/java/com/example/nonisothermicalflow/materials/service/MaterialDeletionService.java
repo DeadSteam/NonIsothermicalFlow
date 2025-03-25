@@ -1,8 +1,5 @@
 package com.example.nonisothermicalflow.materials.service;
 
-import com.example.nonisothermicalflow.materials.model.Material;
-import com.example.nonisothermicalflow.materials.model.MaterialProperty;
-import com.example.nonisothermicalflow.materials.model.EmpiricalCoefficient;
 import com.example.nonisothermicalflow.materials.repository.MaterialPropertyValueRepository;
 import com.example.nonisothermicalflow.materials.repository.MaterialCoefficientValueRepository;
 import lombok.RequiredArgsConstructor;
