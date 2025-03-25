@@ -23,7 +23,7 @@ public class UsersDatabaseConfig {
     @Bean(name = "usersDataSource")
     public DataSource usersDataSource() {
         return DataSourceBuilder.create()
-                .url("jdbc:postgresql://localhost:5432/users_db")
+                .url("jdbc:postgresql://localhost:5433/users_db")
                 .username("postgres")
                 .password("Akrawer1")
                 .driverClassName("org.postgresql.Driver")
