@@ -10,7 +10,9 @@ fi
 
 # Проверяем существование файла
 if [ ! -f "data/dumps/$1" ]; then
-    echo "Dump file not found: data/dumps/$1"
+    echo "Error: Dump file not found: data/dumps/$1"
+    echo "Available dumps:"
+    ls -l data/dumps/
     exit 1
 fi
 
@@ -18,15 +20,30 @@ fi
 if [[ $1 == materials_db_* ]]; then
     DB_NAME="materials_db"
     CONTAINER="postgres-materials-container"
+    echo "Restoring materials database..."
 elif [[ $1 == users_db_* ]]; then
     DB_NAME="users_db"
     CONTAINER="postgres-users-container"
+    echo "Restoring users database..."
 else
-    echo "Invalid dump file name. Must start with 'materials_db_' or 'users_db_'"
+    echo "Error: Invalid dump file name. Must start with 'materials_db_' or 'users_db_'"
+    exit 1
+fi
+
+# Проверяем, запущен ли контейнер
+if ! docker ps | grep -q $CONTAINER; then
+    echo "Error: Container $CONTAINER is not running"
     exit 1
 fi
 
 # Восстанавливаем базу данных
+echo "Restoring database $DB_NAME from: $1"
 docker exec -i $CONTAINER psql -U postgres $DB_NAME < data/dumps/$1
 
-echo "Database $DB_NAME restored from: $1" 
+# Проверяем успешность восстановления
+if [ $? -eq 0 ]; then
+    echo "Database $DB_NAME restored successfully"
+else
+    echo "Error: Failed to restore database"
+    exit 1
+fi 
