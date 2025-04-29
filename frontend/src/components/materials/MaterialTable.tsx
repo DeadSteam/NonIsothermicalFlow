@@ -22,6 +22,7 @@ import {
   getAllMaterials, 
   getMaterialById
 } from '../../services/materialService';
+import {log} from "node:util";
 
 const MaterialTable: React.FC = () => {
   const [materials, setMaterials] = useState<Material[]>([]);
@@ -93,7 +94,7 @@ const MaterialTable: React.FC = () => {
           <MenuItem value="">
             <em>Не выбрано</em>
           </MenuItem>
-          {materials.map((material) => (
+          {materials && materials.map((material) => (
             <MenuItem key={material.id} value={material.id}>
               {material.name} ({material.materialType})
             </MenuItem>
@@ -120,7 +121,7 @@ const MaterialTable: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {selectedMaterial.propertyValues.map((pv) => (
+                {selectedMaterial.propertyValues && selectedMaterial.propertyValues.map((pv) => (
                   <TableRow key={pv.property.id}>
                     <TableCell>{pv.property.propertyName}</TableCell>
                     <TableCell align="right">{pv.propertyValue}</TableCell>
@@ -144,7 +145,7 @@ const MaterialTable: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {selectedMaterial.coefficientValues.map((cv) => (
+                {selectedMaterial.coefficientValues && selectedMaterial.coefficientValues.map((cv) => (
                   <TableRow key={cv.coefficient.id}>
                     <TableCell>{cv.coefficient.coefficientName}</TableCell>
                     <TableCell align="right">{cv.coefficientValue}</TableCell>

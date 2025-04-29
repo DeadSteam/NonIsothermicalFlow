@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { useAuth } from './context/AuthContext';
+import Box from '@mui/material/Box';
 
 // Components
 import Login from './components/auth/Login';
@@ -10,6 +11,8 @@ import SignUp from './components/auth/SignUp';
 import AdminDashboard from './components/admin/AdminDashboard';
 import UserDashboard from './components/user/UserDashboard';
 import SimulationPage from './components/simulation/SimulationPage';
+import MaterialsComparison from './components/materials/MaterialsComparison';
+import Header from './components/common/Header';
 
 const theme = createTheme({
   palette: {
@@ -50,14 +53,20 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Routes>
-        <Route path="/login" element={!user ? <Login /> : (user.role === 'Администратор' ? <Navigate to="/admin" /> : <Navigate to="/user" />)} />
-        <Route path="/signup" element={!user ? <SignUp /> : (user.role === 'Администратор' ? <Navigate to="/admin" /> : <Navigate to="/user" />)} />
-        <Route path="/admin" element={/*user && user.role === 'Администратор' ?*/ <AdminDashboard /> /*: <Navigate to="/login" />*/} />
-        <Route path="/user" element={/*user && user.role === 'Исследователь' ?*/ <UserDashboard /> /*: <Navigate to="/login" />*/} />
-        <Route path="/simulation" element={<SimulationPage />} />
-        <Route path="/" element={<Navigate to="/simulation" />} />
-      </Routes>
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Header />
+        <Box component="main" sx={{ flexGrow: 1, py: 2 }}>
+          <Routes>
+            <Route path="/login" element={!user ? <Login /> : (user.role === 'Администратор' ? <Navigate to="/admin" /> : <Navigate to="/user" />)} />
+            <Route path="/signup" element={!user ? <SignUp /> : (user.role === 'Администратор' ? <Navigate to="/admin" /> : <Navigate to="/user" />)} />
+            <Route path="/admin" element={/*user && user.role === 'Администратор' ?*/ <AdminDashboard /> /*: <Navigate to="/login" />*/} />
+            <Route path="/user" element={/*user && user.role === 'Исследователь' ?*/ <UserDashboard /> /*: <Navigate to="/login" />*/} />
+            <Route path="/simulation" element={<SimulationPage />} />
+            <Route path="/materials-comparison" element={<MaterialsComparison />} />
+            <Route path="/" element={<Navigate to="/simulation" />} />
+          </Routes>
+        </Box>
+      </Box>
     </ThemeProvider>
   );
 };

@@ -38,10 +38,4 @@ public class Material {
     @Size(max = 255, message = "Тип материала не должен превышать 255 символов")
     @Column(name = "material_type", nullable = false)
     private String materialType;
-
-    @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<MaterialPropertyValue> propertyValues = new HashSet<>();
-
-    @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<MaterialCoefficientValue> coefficientValues = new HashSet<>();
 }

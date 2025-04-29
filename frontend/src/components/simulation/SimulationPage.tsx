@@ -111,35 +111,39 @@ const SimulationPage: React.FC = () => {
     const newModel = { ...model };
     
     // Ищем нужные свойства в материале и применяем их к модели
-    material.propertyValues.forEach(pv => {
-      const propName = pv.property.propertyName.toLowerCase();
-      
-      if (propName.includes('плотность')) {
-        newModel.density = pv.propertyValue;
-      } else if (propName.includes('теплоемкость')) {
-        newModel.heatCapacity = pv.propertyValue;
-      } else if (propName.includes('стеклования')) {
-        newModel.glassTransitionTemp = pv.propertyValue;
-      } else if (propName.includes('плавления')) {
-        newModel.meltingTemp = pv.propertyValue;
-      }
-    });
+    if (material.propertyValues) {
+      material.propertyValues.forEach(pv => {
+        const propName = pv.property.propertyName.toLowerCase();
+        
+        if (propName.includes('плотность')) {
+          newModel.density = pv.propertyValue;
+        } else if (propName.includes('теплоемкость')) {
+          newModel.heatCapacity = pv.propertyValue;
+        } else if (propName.includes('стеклования')) {
+          newModel.glassTransitionTemp = pv.propertyValue;
+        } else if (propName.includes('плавления')) {
+          newModel.meltingTemp = pv.propertyValue;
+        }
+      });
+    }
 
-    material.coefficientValues.forEach(cv => {
-      const coefName = cv.coefficient.coefficientName.toLowerCase();
-      
-      if (coefName.includes('консистенции')) {
-        newModel.mu0 = cv.coefficientValue;
-      } else if (coefName.includes('c1')) {
-        newModel.firstConstantVLF = cv.coefficientValue;
-      } else if (coefName.includes('c2')) {
-        newModel.secondConstantVLF = cv.coefficientValue;
-      } else if (coefName.includes('течения')) {
-        newModel.flowIndex = cv.coefficientValue;
-      } else if (coefName.includes('теплоотдачи')) {
-        newModel.heatTransfer = cv.coefficientValue;
-      }
-    });
+    if (material.coefficientValues) {
+      material.coefficientValues.forEach(cv => {
+        const coefName = cv.coefficient.coefficientName.toLowerCase();
+        
+        if (coefName.includes('консистенции')) {
+          newModel.mu0 = cv.coefficientValue;
+        } else if (coefName.includes('c1')) {
+          newModel.firstConstantVLF = cv.coefficientValue;
+        } else if (coefName.includes('c2')) {
+          newModel.secondConstantVLF = cv.coefficientValue;
+        } else if (coefName.includes('течения')) {
+          newModel.flowIndex = cv.coefficientValue;
+        } else if (coefName.includes('теплоотдачи')) {
+          newModel.heatTransfer = cv.coefficientValue;
+        }
+      });
+    }
 
     setModel(newModel);
   };
