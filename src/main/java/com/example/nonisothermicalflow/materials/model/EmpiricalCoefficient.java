@@ -10,10 +10,6 @@ import lombok.Setter;
 
 import java.util.UUID;
 
-/**
- * Сущность, представляющая эмпирический коэффициент.
- * Используется для хранения различных эмпирических коэффициентов материалов.
- */
 @Entity
 @Table(name = "empirical_coefficients")
 @Getter
@@ -21,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmpiricalCoefficient {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "ID_coefficient")

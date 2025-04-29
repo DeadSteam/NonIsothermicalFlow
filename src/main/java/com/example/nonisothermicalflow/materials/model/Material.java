@@ -1,5 +1,6 @@
 package com.example.nonisothermicalflow.materials.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -12,10 +13,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Сущность, представляющая материал в системе.
- * Используется для хранения информации о различных материалах.
- */
 @Entity
 @Table(name = "materials")
 @Getter
@@ -23,7 +20,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Material {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "ID_material")
@@ -38,4 +35,12 @@ public class Material {
     @Size(max = 255, message = "Тип материала не должен превышать 255 символов")
     @Column(name = "material_type", nullable = false)
     private String materialType;
+
+    @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<MaterialPropertyValue> propertyValues = new HashSet<>();
+
+    @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<MaterialCoefficientValue> coefficientValues = new HashSet<>();
 }

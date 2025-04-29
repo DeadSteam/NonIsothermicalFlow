@@ -1,5 +1,6 @@
 package com.example.nonisothermicalflow.materials.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,7 @@ public class MaterialPropertyValue {
     @ManyToOne
     @MapsId("materialId")
     @JoinColumn(name = "ID_material")
+    @JsonBackReference
     private Material material;
 
     @ManyToOne
