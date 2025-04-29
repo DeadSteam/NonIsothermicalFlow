@@ -23,7 +23,7 @@ import java.util.UUID;
 public class MaterialProperty {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "ID_property")
     private UUID id;
 
