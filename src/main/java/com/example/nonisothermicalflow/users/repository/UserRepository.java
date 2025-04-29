@@ -1,5 +1,6 @@
 package com.example.nonisothermicalflow.users.repository;
 
+import com.example.nonisothermicalflow.users.model.Role;
 import com.example.nonisothermicalflow.users.model.User;
 import com.example.nonisothermicalflow.users.model.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,7 +17,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     
     boolean existsByUsername(String username);
     
-    List<User> findByRole(UserRole role);
+    List<User> findByRole(Role role);
     
-    Optional<User> findByUsernameAndRole(String username, UserRole role);
+    Optional<User> findByUsernameAndRole(String username, Role role);
 }

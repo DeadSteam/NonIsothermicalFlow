@@ -37,6 +37,6 @@ out/
 .vscode/
 
 ### Docker ###
-docker/data/postgres-data/
-docker/data/redis-data/
+docker/data/postgres-materials-data/
+docker/data/postgres-users-data/
 !docker/data/dumps/

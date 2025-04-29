@@ -5,8 +5,6 @@ volumes:
     driver: local
   postgres-users-data:
     driver: local
-  redis-data:
-    driver: local
 
 services:
   postgres-materials:
