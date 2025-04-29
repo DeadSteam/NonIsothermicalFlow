@@ -21,31 +21,58 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Authentication services
+// Эмуляция ответа API для аутентификации
+const mockUserResponse = (username: string): User => {
+  // Определение роли в зависимости от имени пользователя
+  const role = username.toLowerCase().includes('admin') ? 'Администратор' : 'Исследователь';
+  
+  return {
+    id: Math.floor(Math.random() * 1000),
+    username,
+    role,
+    token: `mock-token-${Date.now()}`
+  };
+};
+
+// Эмуляция API сервисов
 export const authService = {
   login: async (username: string, password: string): Promise<User> => {
-    try {
-      const response = await api.post('/auth/login', { username, password });
-      return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data.message || 'Ошибка аутентификации');
-      }
-      throw new Error('Сервер недоступен. Пожалуйста, попробуйте позже.');
+    // Имитация задержки сети
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Проверка логина и пароля (простая эмуляция)
+    if (!username || !password) {
+      throw new Error('Имя пользователя и пароль обязательны');
     }
+    
+    if (password.length < 4) {
+      throw new Error('Пароль должен содержать не менее 4 символов');
+    }
+    
+    // Возвращаем мок-ответ
+    return mockUserResponse(username);
   },
-
+  
   signup: async (username: string, password: string): Promise<User> => {
-    try {
-      const response = await api.post('/auth/signup', { username, password });
-      return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data.message || 'Ошибка регистрации');
-      }
-      throw new Error('Сервер недоступен. Пожалуйста, попробуйте позже.');
+    // Имитация задержки сети
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Проверка данных
+    if (!username || !password) {
+      throw new Error('Имя пользователя и пароль обязательны');
     }
-  },
+    
+    if (username.length < 3) {
+      throw new Error('Имя пользователя должно содержать не менее 3 символов');
+    }
+    
+    if (password.length < 6) {
+      throw new Error('Пароль должен содержать не менее 6 символов');
+    }
+    
+    // Возвращаем мок-ответ
+    return mockUserResponse(username);
+  }
 };
 
 // User services

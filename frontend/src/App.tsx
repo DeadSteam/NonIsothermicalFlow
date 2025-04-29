@@ -9,6 +9,7 @@ import Login from './components/auth/Login';
 import SignUp from './components/auth/SignUp';
 import AdminDashboard from './components/admin/AdminDashboard';
 import UserDashboard from './components/user/UserDashboard';
+import SimulationPage from './components/simulation/SimulationPage';
 
 const theme = createTheme({
   palette: {
@@ -54,7 +55,8 @@ const App: React.FC = () => {
         <Route path="/signup" element={!user ? <SignUp /> : (user.role === 'Администратор' ? <Navigate to="/admin" /> : <Navigate to="/user" />)} />
         <Route path="/admin" element={/*user && user.role === 'Администратор' ?*/ <AdminDashboard /> /*: <Navigate to="/login" />*/} />
         <Route path="/user" element={/*user && user.role === 'Исследователь' ?*/ <UserDashboard /> /*: <Navigate to="/login" />*/} />
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/simulation" element={<SimulationPage />} />
+        <Route path="/" element={<Navigate to="/simulation" />} />
       </Routes>
     </ThemeProvider>
   );

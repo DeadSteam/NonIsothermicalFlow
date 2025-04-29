@@ -51,6 +51,7 @@ public class EmpericalCoefficientController {
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
