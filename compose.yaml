@@ -20,7 +20,6 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./docker/data/postgres-materials-data:/var/lib/postgresql/data
       - ./sql/init/materials-db.sql:/docker-entrypoint-initdb.d/01-init.sql
 
   postgres-users:
@@ -34,5 +33,4 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./docker/data/postgres-users-data:/var/lib/postgresql/data
       - ./sql/init/users-db.sql:/docker-entrypoint-initdb.d/01-init.sql
