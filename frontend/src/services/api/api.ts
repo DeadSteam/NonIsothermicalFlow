@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User } from '../context/AuthContext';
+import { User } from '../../context/AuthContext';
 
 // API URL for backend connection
 const API_URL = 'http://localhost:8080/api';
@@ -110,4 +110,4 @@ export const userService = {
   }
 };
 
-export default api; 
+export default api;

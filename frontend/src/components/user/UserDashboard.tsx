@@ -21,6 +21,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import MaterialsTable from "../user/tables/MaterialsTable";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -113,7 +114,7 @@ const UserDashboard: React.FC = () => {
         </Tabs>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Container maxWidth={false} sx={{ mt: 0 }}>
         <TabPanel value={tabValue} index={0}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h5" gutterBottom>
@@ -172,30 +173,28 @@ const UserDashboard: React.FC = () => {
 
               <Grid item xs={12} md={6}>
                 <Box 
-                  sx={{ 
-                    height: 200, 
+                  sx={{
                     bgcolor: 'background.default', 
                     border: '1px dashed grey',
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
+                    flexDirection: 'column',
                     mb: 2
                   }}
                 >
-                  <Typography color="text.secondary">
-                    Здесь будет отображаться график
-                  </Typography>
+                  <MaterialsTable />
                 </Box>
-
-                <Button 
-                  variant="contained" 
-                  fullWidth 
-                  sx={{ mt: 2 }}
-                >
-                  Запустить расчет
-                </Button>
               </Grid>
             </Grid>
+            <Button
+                variant="contained"
+                fullWidth
+                sx={{ mt: 2 }}
+
+            >
+              Запустить расчет
+            </Button>
           </Paper>
         </TabPanel>
 
@@ -205,8 +204,7 @@ const UserDashboard: React.FC = () => {
               Результаты исследований
             </Typography>
             <Box 
-              sx={{ 
-                height: 300, 
+              sx={{
                 bgcolor: 'background.default', 
                 border: '1px dashed grey',
                 display: 'flex',
