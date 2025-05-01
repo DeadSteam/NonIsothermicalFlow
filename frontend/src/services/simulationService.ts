@@ -19,21 +19,19 @@ export interface MathModel {
   flowIndex: number;              // Индекс течения (n)
   heatTransfer: number;           // Коэффициент теплоотдачи (αu), Вт/(м²·°C)
   step: number;                   // Шаг расчета (Δz), м
+  displayStep: number;            // Шаг отображения таблицы, м
 }
 
 export interface ResultModel {
-  shapeFactor: number;            // F
-  volumetricFlowRate: number;     // QCH, м³/с
-  shearRate: number;              // γ, 1/с
-  viscousHeat: number;            // qγ, Вт/м
-  heatFlux: number;               // qα, Вт/м
-  stepsCount: number;             // N
   positions: number[];            // z, м
   temperatures: number[];         // T, °C
   viscosities: number[];          // η, Па·с
   productivity: number;           // Q, кг/ч
   finalTemperature: number;       // Tp, °C
   finalViscosity: number;         // ηp, Па·с
+  calculationTime: number;        // Время расчета, мс
+  operationsCount: number;        // Количество математических операций
+  memoryUsage: number;            // Использованная память, байт
 }
 
 export const runSimulation = async (model: MathModel): Promise<ResultModel> => {
