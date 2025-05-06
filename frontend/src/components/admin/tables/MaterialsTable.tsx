@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Paper,
   Table,
@@ -16,52 +16,131 @@ import {
   IconButton,
   Typography,
   Box,
-  Alert
+  Alert,
+  CircularProgress,
+  Tabs,
+  Tab,
+  Divider
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { 
+  Material, 
+  getAllMaterials, 
+  createMaterial, 
+  updateMaterial, 
+  deleteMaterial,
+  MaterialPropertyValue,
+  MaterialCoefficientValue,
+  addMaterialProperty,
+  updateMaterialProperty,
+  addMaterialCoefficient,
+  updateMaterialCoefficient
+} from '../../../services/materialService';
+import { MaterialProperty, getAllProperties } from '../../../services/propertyService';
+import { EmpiricalCoefficient, getAllCoefficients } from '../../../services/coefficientService';
 
-// Material type definition
-interface Material {
-  id: number;
-  name: string;
-  density: number;
-  heatCapacity: number;
-  meltingTemperature: number;
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
 }
 
-// Mock data
-const initialMaterials: Material[] = [
-  { id: 1, name: 'PLA', density: 1.24, heatCapacity: 1800, meltingTemperature: 160 },
-  { id: 2, name: 'ABS', density: 1.04, heatCapacity: 1470, meltingTemperature: 230 },
-  { id: 3, name: 'PET', density: 1.38, heatCapacity: 1200, meltingTemperature: 250 },
-];
+const TabPanel: React.FC<TabPanelProps> = (props) => {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+};
 
 interface MaterialFormData {
-  id: number | null;
+  id: string | null;
   name: string;
-  density: string;
-  heatCapacity: string;
-  meltingTemperature: string;
+  materialType: string;
+  propertyValues: MaterialPropertyValue[];
+  coefficientValues: MaterialCoefficientValue[];
 }
 
 const MaterialsTable: React.FC = () => {
-  const [materials, setMaterials] = useState<Material[]>(initialMaterials);
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [properties, setProperties] = useState<MaterialProperty[]>([]);
+  const [coefficients, setCoefficients] = useState<EmpiricalCoefficient[]>([]);
+  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
   const [formData, setFormData] = useState<MaterialFormData>({
     id: null,
     name: '',
-    density: '',
-    heatCapacity: '',
-    meltingTemperature: '',
+    materialType: '',
+    propertyValues: [],
+    coefficientValues: []
   });
   const [isEdit, setIsEdit] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const validateNumericInput = (value: string): boolean => {
-    const numValue = parseFloat(value);
-    return !isNaN(numValue) && numValue > 0;
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchMaterials(),
+          fetchProperties(),
+          fetchCoefficients()
+        ]);
+      } catch (err) {
+        console.error('Ошибка при загрузке данных:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const fetchMaterials = async () => {
+    try {
+      const data = await getAllMaterials();
+      setMaterials(data);
+      setError(null);
+    } catch (err) {
+      console.error('Ошибка при загрузке материалов:', err);
+      setError('Ошибка при загрузке материалов');
+    }
+  };
+
+  const fetchProperties = async () => {
+    try {
+      console.log('Загрузка свойств...');
+      const data = await getAllProperties();
+      console.log('Загружены свойства:', data);
+      setProperties(data);
+    } catch (err) {
+      console.error('Ошибка при загрузке свойств:', err);
+      setError('Ошибка при загрузке свойств материалов');
+    }
+  };
+
+  const fetchCoefficients = async () => {
+    try {
+      console.log('Загрузка коэффициентов...');
+      const data = await getAllCoefficients();
+      console.log('Загружены коэффициенты:', data);
+      setCoefficients(data);
+    } catch (err) {
+      console.error('Ошибка при загрузке коэффициентов:', err);
+      setError('Ошибка при загрузке коэффициентов материалов');
+    }
   };
 
   const handleClickOpen = () => {
@@ -78,12 +157,17 @@ const MaterialsTable: React.FC = () => {
     setFormData({
       id: null,
       name: '',
-      density: '',
-      heatCapacity: '',
-      meltingTemperature: '',
+      materialType: '',
+      propertyValues: [],
+      coefficientValues: []
     });
     setIsEdit(false);
     setError(null);
+    setTabValue(0);
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,79 +178,140 @@ const MaterialsTable: React.FC = () => {
     });
   };
 
+  const handlePropertyValueChange = (propertyId: string, value: string) => {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return;
+
+    setFormData(prev => {
+      const propertyValues = [...prev.propertyValues];
+      const existingIndex = propertyValues.findIndex(pv => pv.property.id === propertyId);
+      
+      if (existingIndex >= 0) {
+        propertyValues[existingIndex] = {
+          ...propertyValues[existingIndex],
+          propertyValue: numValue
+        };
+      } else {
+        const property = properties.find(p => p.id === propertyId);
+        if (property) {
+          propertyValues.push({
+            property,
+            propertyValue: numValue
+          });
+        }
+      }
+
+      return {
+        ...prev,
+        propertyValues
+      };
+    });
+  };
+
+  const handleCoefficientValueChange = (coefficientId: string, value: string) => {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return;
+
+    setFormData(prev => {
+      const coefficientValues = [...prev.coefficientValues];
+      const existingIndex = coefficientValues.findIndex(cv => cv.coefficient.id === coefficientId);
+      
+      if (existingIndex >= 0) {
+        coefficientValues[existingIndex] = {
+          ...coefficientValues[existingIndex],
+          coefficientValue: numValue
+        };
+      } else {
+        const coefficient = coefficients.find(c => c.id === coefficientId);
+        if (coefficient) {
+          coefficientValues.push({
+            coefficient,
+            coefficientValue: numValue
+          });
+        }
+      }
+
+      return {
+        ...prev,
+        coefficientValues
+      };
+    });
+  };
+
   const validateForm = (): boolean => {
-    if (!formData.name) {
+    if (!formData.name.trim()) {
       setError('Пожалуйста, введите название материала');
       return false;
     }
 
-    if (!validateNumericInput(formData.density)) {
-      setError('Плотность должна быть положительным числом');
-      return false;
-    }
-
-    if (!validateNumericInput(formData.heatCapacity)) {
-      setError('Удельная теплоемкость должна быть положительным числом');
-      return false;
-    }
-
-    if (!validateNumericInput(formData.meltingTemperature)) {
-      setError('Температура плавления должна быть положительным числом');
+    if (!formData.materialType.trim()) {
+      setError('Пожалуйста, введите тип материала');
       return false;
     }
 
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
 
-    if (isEdit) {
-      // Update existing material
-      setMaterials(
-        materials.map((material) =>
-          material.id === formData.id
-            ? {
-                ...material,
-                name: formData.name,
-                density: parseFloat(formData.density),
-                heatCapacity: parseFloat(formData.heatCapacity),
-                meltingTemperature: parseFloat(formData.meltingTemperature),
-              }
-            : material
-        )
-      );
-    } else {
-      // Add new material
-      const newMaterial: Material = {
-        id: materials.length > 0 ? Math.max(...materials.map((m) => m.id)) + 1 : 1,
-        name: formData.name,
-        density: parseFloat(formData.density),
-        heatCapacity: parseFloat(formData.heatCapacity),
-        meltingTemperature: parseFloat(formData.meltingTemperature),
-      };
-      setMaterials([...materials, newMaterial]);
+    try {
+      if (isEdit && formData.id) {
+        const materialData: Partial<Material> = {
+          id: formData.id,
+          name: formData.name,
+          materialType: formData.materialType,
+          propertyValues: formData.propertyValues,
+          coefficientValues: formData.coefficientValues
+        };
+        await updateMaterial(formData.id, materialData);
+      } else {
+        await createMaterial(formData);
+      }
+      await fetchMaterials();
+      handleClose();
+    } catch (err) {
+      console.error('Ошибка при сохранении материала:', err);
+      setError('Ошибка при сохранении материала');
     }
-
-    handleClose();
   };
 
   const handleEdit = (material: Material) => {
     setFormData({
       id: material.id,
       name: material.name,
-      density: material.density.toString(),
-      heatCapacity: material.heatCapacity.toString(),
-      meltingTemperature: material.meltingTemperature.toString(),
+      materialType: material.materialType,
+      propertyValues: material.propertyValues || [],
+      coefficientValues: material.coefficientValues || []
     });
     setIsEdit(true);
     setOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    setMaterials(materials.filter((material) => material.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Вы уверены, что хотите удалить этот материал?')) {
+      return;
+    }
+
+    try {
+      await deleteMaterial(id);
+      await fetchMaterials();
+    } catch (err) {
+      console.error('Ошибка при удалении материала:', err);
+      setError('Ошибка при удалении материала');
+    }
+  };
+
+  const getPropertyValue = (material: Material, propertyId: string): number | null => {
+    const propertyValue = material.propertyValues?.find(pv => pv.property.id === propertyId);
+    return propertyValue ? propertyValue.propertyValue : null;
+  };
+
+  const getCoefficientValue = (material: Material, coefficientId: string): number | null => {
+    const coefficientValue = material.coefficientValues?.find(cv => cv.coefficient.id === coefficientId);
+    return coefficientValue ? coefficientValue.coefficientValue : null;
   };
 
   return (
@@ -182,103 +327,126 @@ const MaterialsTable: React.FC = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Материал</TableCell>
-              <TableCell>Плотность (кг/м³)</TableCell>
-              <TableCell>Удельная теплоемкость (Дж/кг·К)</TableCell>
-              <TableCell>Температура плавления (°C)</TableCell>
-              <TableCell align="right">Действия</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {materials.map((material) => (
-              <TableRow key={material.id}>
-                <TableCell component="th" scope="row">
-                  {material.id}
-                </TableCell>
-                <TableCell>{material.name}</TableCell>
-                <TableCell>{material.density}</TableCell>
-                <TableCell>{material.heatCapacity}</TableCell>
-                <TableCell>{material.meltingTemperature}</TableCell>
-                <TableCell align="right">
-                  <IconButton color="primary" onClick={() => handleEdit(material)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton color="error" onClick={() => handleDelete(material.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>{isEdit ? 'Редактировать материал' : 'Добавить материал'}</DialogTitle>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Название</TableCell>
+                <TableCell>Тип материала</TableCell>
+                <TableCell>Свойства</TableCell>
+                <TableCell>Коэффициенты</TableCell>
+                <TableCell align="right">Действия</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {materials.map((material) => (
+                <TableRow key={material.id}>
+                  <TableCell>{material.name}</TableCell>
+                  <TableCell>{material.materialType}</TableCell>
+                  <TableCell>
+                    {material.propertyValues?.map((pv) => (
+                      <div key={pv.property.id}>
+                        {pv.property.propertyName}: {pv.propertyValue} {pv.property.unitOfMeasurement}
+                      </div>
+                    ))}
+                  </TableCell>
+                  <TableCell>
+                    {material.coefficientValues?.map((cv) => (
+                      <div key={cv.coefficient.id}>
+                        {cv.coefficient.coefficientName}: {cv.coefficientValue} {cv.coefficient.unitOfMeasurement}
+                      </div>
+                    ))}
+                  </TableCell>
+                  <TableCell align="right">
+                    <IconButton onClick={() => handleEdit(material)} color="primary">
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleDelete(material.id)} color="error">
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+        <DialogTitle>
+          {isEdit ? 'Редактировать материал' : 'Добавить материал'}
+        </DialogTitle>
         <DialogContent>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          <TextField
-            autoFocus
-            margin="dense"
-            id="name"
-            name="name"
-            label="Название материала"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={formData.name}
-            onChange={handleInputChange}
-          />
-          <TextField
-            margin="dense"
-            id="density"
-            name="density"
-            label="Плотность (кг/м³)"
-            type="number"
-            fullWidth
-            variant="outlined"
-            value={formData.density}
-            onChange={handleInputChange}
-            inputProps={{ min: 0, step: "0.01" }}
-          />
-          <TextField
-            margin="dense"
-            id="heatCapacity"
-            name="heatCapacity"
-            label="Удельная теплоемкость (Дж/кг·К)"
-            type="number"
-            fullWidth
-            variant="outlined"
-            value={formData.heatCapacity}
-            onChange={handleInputChange}
-            inputProps={{ min: 0, step: "1" }}
-          />
-          <TextField
-            margin="dense"
-            id="meltingTemperature"
-            name="meltingTemperature"
-            label="Температура плавления (°C)"
-            type="number"
-            fullWidth
-            variant="outlined"
-            value={formData.meltingTemperature}
-            onChange={handleInputChange}
-            inputProps={{ min: 0, step: "0.1" }}
-          />
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+            <Tabs value={tabValue} onChange={handleTabChange}>
+              <Tab label="Основная информация" />
+              <Tab label="Свойства" />
+              <Tab label="Коэффициенты" />
+            </Tabs>
+          </Box>
+
+          <TabPanel value={tabValue} index={0}>
+            <TextField
+              fullWidth
+              label="Название материала"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Тип материала"
+              name="materialType"
+              value={formData.materialType}
+              onChange={handleInputChange}
+              margin="normal"
+            />
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={1}>
+            {properties.map((property) => (
+              <TextField
+                key={property.id}
+                fullWidth
+                label={`${property.propertyName} (${property.unitOfMeasurement})`}
+                type="number"
+                value={formData.propertyValues.find(pv => pv.property.id === property.id)?.propertyValue || ''}
+                onChange={(e) => handlePropertyValueChange(property.id, e.target.value)}
+                margin="normal"
+              />
+            ))}
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={2}>
+            {coefficients.map((coefficient) => (
+              <TextField
+                key={coefficient.id}
+                fullWidth
+                label={`${coefficient.coefficientName} (${coefficient.unitOfMeasurement})`}
+                type="number"
+                value={formData.coefficientValues.find(cv => cv.coefficient.id === coefficient.id)?.coefficientValue || ''}
+                onChange={(e) => handleCoefficientValueChange(coefficient.id, e.target.value)}
+                margin="normal"
+              />
+            ))}
+          </TabPanel>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Отмена</Button>
-          <Button onClick={handleSubmit}>
-            {isEdit ? 'Обновить' : 'Добавить'}
+          <Button onClick={handleSubmit} variant="contained" color="primary">
+            {isEdit ? 'Сохранить' : 'Добавить'}
           </Button>
         </DialogActions>
       </Dialog>

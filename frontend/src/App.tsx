@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { useAuth } from './context/AuthContext';
+import { Container } from '@mui/material';
 import Box from '@mui/material/Box';
 
 // Components
@@ -12,7 +13,8 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import UserDashboard from './components/user/UserDashboard';
 import SimulationPage from './components/simulation/SimulationPage';
 import MaterialsComparison from './components/materials/MaterialsComparison';
-import Header from './components/common/Header';
+import AdminPanel from './components/admin/AdminPanel';
+import Navigation from './components/common/Navigation';
 
 const theme = createTheme({
   palette: {
@@ -54,8 +56,8 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Header />
-        <Box component="main" sx={{ flexGrow: 1, py: 2 }}>
+        <Navigation />
+        <Container sx={{ mt: 3 }}>
           <Routes>
             <Route path="/login" element={!user ? <Login /> : (user.role === 'Администратор' ? <Navigate to="/admin" /> : <Navigate to="/user" />)} />
             <Route path="/signup" element={!user ? <SignUp /> : (user.role === 'Администратор' ? <Navigate to="/admin" /> : <Navigate to="/user" />)} />
@@ -64,8 +66,9 @@ const App: React.FC = () => {
             <Route path="/simulation" element={<SimulationPage />} />
             <Route path="/materials-comparison" element={<MaterialsComparison />} />
             <Route path="/" element={<Navigate to="/simulation" />} />
+            <Route path="/admin-panel" element={<AdminPanel />} />
           </Routes>
-        </Box>
+        </Container>
       </Box>
     </ThemeProvider>
   );

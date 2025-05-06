@@ -15,9 +15,9 @@ import {
 } from '@mui/material';
 import {
   Material,
-  MaterialProperty,
   getAllMaterials
 } from '../../services/materialService';
+import { MaterialProperty } from '../../services/propertyService';
 
 interface ColumnDefinition {
   id: string;

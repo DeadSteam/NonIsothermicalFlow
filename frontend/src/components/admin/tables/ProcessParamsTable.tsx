@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Paper,
   Table,
@@ -16,42 +16,55 @@ import {
   IconButton,
   Typography,
   Box,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-
-// Process Parameters type definition
-interface ProcessParams {
-  id: number;
-  coverSpeed: number;
-  coverTemperature: number;
-}
-
-// Mock data
-const initialProcessParams: ProcessParams[] = [
-  { id: 1, coverSpeed: 0.1, coverTemperature: 120 },
-  { id: 2, coverSpeed: 0.2, coverTemperature: 150 },
-  { id: 3, coverSpeed: 0.3, coverTemperature: 180 },
-];
+import {
+  ProcessParams,
+  getAllProcessParams,
+  createProcessParams,
+  updateProcessParams,
+  deleteProcessParams
+} from '../../../services/processParamsService';
 
 interface ProcessParamsFormData {
-  id: number | null;
+  id: string | null;
   coverSpeed: string;
   coverTemperature: string;
 }
 
 const ProcessParamsTable: React.FC = () => {
-  const [processParams, setProcessParams] = useState<ProcessParams[]>(initialProcessParams);
+  const [processParams, setProcessParams] = useState<ProcessParams[]>([]);
+  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<ProcessParamsFormData>({
     id: null,
     coverSpeed: '',
-    coverTemperature: '',
+    coverTemperature: ''
   });
   const [isEdit, setIsEdit] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchProcessParams();
+  }, []);
+
+  const fetchProcessParams = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllProcessParams();
+      setProcessParams(data);
+      setError(null);
+    } catch (err) {
+      console.error('Ошибка при загрузке параметров процесса:', err);
+      setError('Ошибка при загрузке параметров процесса');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateNumericInput = (value: string): boolean => {
     const numValue = parseFloat(value);
@@ -72,7 +85,7 @@ const ProcessParamsTable: React.FC = () => {
     setFormData({
       id: null,
       coverSpeed: '',
-      coverTemperature: '',
+      coverTemperature: ''
     });
     setIsEdit(false);
     setError(null);
@@ -82,7 +95,7 @@ const ProcessParamsTable: React.FC = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: value
     });
   };
 
@@ -100,49 +113,53 @@ const ProcessParamsTable: React.FC = () => {
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
 
-    if (isEdit) {
-      // Update existing process parameters
-      setProcessParams(
-        processParams.map((param) =>
-          param.id === formData.id
-            ? {
-                ...param,
-                coverSpeed: parseFloat(formData.coverSpeed),
-                coverTemperature: parseFloat(formData.coverTemperature),
-              }
-            : param
-        )
-      );
-    } else {
-      // Add new process parameters
-      const newProcessParam: ProcessParams = {
-        id: processParams.length > 0 ? Math.max(...processParams.map((p) => p.id)) + 1 : 1,
+    try {
+      const paramsData = {
         coverSpeed: parseFloat(formData.coverSpeed),
-        coverTemperature: parseFloat(formData.coverTemperature),
+        coverTemperature: parseFloat(formData.coverTemperature)
       };
-      setProcessParams([...processParams, newProcessParam]);
-    }
 
-    handleClose();
+      if (isEdit && formData.id) {
+        await updateProcessParams(formData.id, paramsData);
+      } else {
+        await createProcessParams(paramsData);
+      }
+
+      await fetchProcessParams();
+      handleClose();
+    } catch (err) {
+      console.error('Ошибка при сохранении параметров процесса:', err);
+      setError('Ошибка при сохранении параметров процесса');
+    }
   };
 
-  const handleEdit = (param: ProcessParams) => {
+  const handleEdit = (params: ProcessParams) => {
     setFormData({
-      id: param.id,
-      coverSpeed: param.coverSpeed.toString(),
-      coverTemperature: param.coverTemperature.toString(),
+      id: params.id,
+      coverSpeed: params.coverSpeed.toString(),
+      coverTemperature: params.coverTemperature.toString()
     });
     setIsEdit(true);
     setOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    setProcessParams(processParams.filter((param) => param.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Вы уверены, что хотите удалить эти параметры процесса?')) {
+      return;
+    }
+
+    try {
+      await deleteProcessParams(id);
+      await fetchProcessParams();
+    } catch (err) {
+      console.error('Ошибка при удалении параметров процесса:', err);
+      setError('Ошибка при удалении параметров процесса');
+    }
   };
 
   return (
@@ -158,40 +175,50 @@ const ProcessParamsTable: React.FC = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Скорость движения крышки (м/с)</TableCell>
-              <TableCell>Температура крышки (°C)</TableCell>
-              <TableCell align="right">Действия</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {processParams.map((param) => (
-              <TableRow key={param.id}>
-                <TableCell component="th" scope="row">
-                  {param.id}
-                </TableCell>
-                <TableCell>{param.coverSpeed}</TableCell>
-                <TableCell>{param.coverTemperature}</TableCell>
-                <TableCell align="right">
-                  <IconButton color="primary" onClick={() => handleEdit(param)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton color="error" onClick={() => handleDelete(param.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell>Скорость движения крышки (м/с)</TableCell>
+                <TableCell>Температура крышки (°C)</TableCell>
+                <TableCell align="right">Действия</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {processParams.map((params) => (
+                <TableRow key={params.id}>
+                  <TableCell>{params.coverSpeed}</TableCell>
+                  <TableCell>{params.coverTemperature}</TableCell>
+                  <TableCell align="right">
+                    <IconButton onClick={() => handleEdit(params)} color="primary">
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleDelete(params.id)} color="error">
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>{isEdit ? 'Редактировать параметры процесса' : 'Добавить параметры процесса'}</DialogTitle>
+        <DialogTitle>
+          {isEdit ? 'Редактировать параметры' : 'Добавить параметры'}
+        </DialogTitle>
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -199,35 +226,32 @@ const ProcessParamsTable: React.FC = () => {
             </Alert>
           )}
           <TextField
-            autoFocus
             margin="dense"
-            id="coverSpeed"
             name="coverSpeed"
             label="Скорость движения крышки (м/с)"
             type="number"
             fullWidth
-            variant="outlined"
             value={formData.coverSpeed}
             onChange={handleInputChange}
-            inputProps={{ min: 0, step: "0.01" }}
+            inputProps={{ min: 0, step: "0.1" }}
+            sx={{ mb: 2 }}
           />
           <TextField
             margin="dense"
-            id="coverTemperature"
             name="coverTemperature"
             label="Температура крышки (°C)"
             type="number"
             fullWidth
-            variant="outlined"
             value={formData.coverTemperature}
             onChange={handleInputChange}
             inputProps={{ min: 0, step: "0.1" }}
+            sx={{ mb: 2 }}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Отмена</Button>
-          <Button onClick={handleSubmit}>
-            {isEdit ? 'Обновить' : 'Добавить'}
+          <Button onClick={handleSubmit} variant="contained">
+            {isEdit ? 'Сохранить' : 'Добавить'}
           </Button>
         </DialogActions>
       </Dialog>

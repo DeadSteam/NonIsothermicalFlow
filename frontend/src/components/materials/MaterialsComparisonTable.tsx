@@ -15,11 +15,11 @@ import {
 } from '@mui/material';
 import {
   Material,
-  MaterialProperty,
   MaterialPropertyValue,
   MaterialCoefficientValue,
   getAllMaterials
 } from '../../services/materialService';
+import { MaterialProperty } from '../../services/propertyService';
 
 const MaterialsComparisonTable: React.FC = () => {
   const [materials, setMaterials] = useState<Material[]>([]);
@@ -53,7 +53,11 @@ const MaterialsComparisonTable: React.FC = () => {
       if (material.propertyValues) {
         material.propertyValues.forEach(pv => {
           if (!uniquePropertiesMap.has(pv.property.id)) {
-            uniquePropertiesMap.set(pv.property.id, pv.property);
+            const property = {
+              ...pv.property,
+              description: ''
+            };
+            uniquePropertiesMap.set(pv.property.id, property);
           }
         });
       }
@@ -73,7 +77,8 @@ const MaterialsComparisonTable: React.FC = () => {
             uniqueCoefficientsMap.set(cv.coefficient.id, {
               id: cv.coefficient.id,
               propertyName: cv.coefficient.coefficientName,
-              unitOfMeasurement: cv.coefficient.unitOfMeasurement
+              unitOfMeasurement: cv.coefficient.unitOfMeasurement,
+              description: ''
             });
           }
         });

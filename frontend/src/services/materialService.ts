@@ -1,51 +1,84 @@
 import axios from 'axios';
+import { getApiUrl } from '../config/api.config';
+import { Material as MaterialType, MaterialPropertyValue, MaterialCoefficientValue } from '../types/material.types';
 
-const API_URL = 'http://localhost:8080/api/v1/materials';
-
-export interface MaterialProperty {
-  id: string;
-  propertyName: string;
-  unitOfMeasurement: string;
-}
-
-export interface MaterialPropertyValue {
-  property: MaterialProperty;
-  propertyValue: number;
-}
-
-export interface MaterialCoefficientValue {
-  coefficient: {
-    id: string;
-    coefficientName: string;
-    unitOfMeasurement: string;
-  };
-  coefficientValue: number;
-}
-
-export interface Material {
-  id: string;
-  name: string;
-  materialType: string;
-  propertyValues: MaterialPropertyValue[];
-  coefficientValues: MaterialCoefficientValue[];
-}
+export type Material = MaterialType;
+export type { MaterialPropertyValue, MaterialCoefficientValue };
 
 export const getAllMaterials = async (): Promise<Material[]> => {
-  try {
-    const response = await axios.get<Material[]>(API_URL);
-    return response.data;
-  } catch (error) {
-    console.error('Ошибка при получении списка материалов:', error);
-    throw error;
-  }
+  const response = await axios.get(getApiUrl('/materials'));
+  return response.data;
 };
 
 export const getMaterialById = async (id: string): Promise<Material> => {
-  try {
-    const response = await axios.get<Material>(`${API_URL}/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Ошибка при получении материала с ID ${id}:`, error);
-    throw error;
-  }
+  const response = await axios.get(getApiUrl(`/materials/${id}`));
+  return response.data;
+};
+
+export const createMaterial = async (material: Omit<Material, 'id'>): Promise<Material> => {
+  const response = await axios.post(getApiUrl('/materials'), material);
+  return response.data;
+};
+
+export const updateMaterial = async (id: string, material: Partial<Material>): Promise<Material> => {
+  const response = await axios.put(getApiUrl(`/materials/${id}`), material);
+  return response.data;
+};
+
+export const deleteMaterial = async (id: string): Promise<void> => {
+  await axios.delete(getApiUrl(`/materials/${id}`));
+};
+
+export const getMaterialProperties = async (materialId: string): Promise<MaterialPropertyValue[]> => {
+  const response = await axios.get(getApiUrl(`/material-properties/material/${materialId}`));
+  return response.data;
+};
+
+export const addMaterialProperty = async (
+  materialId: string,
+  propertyId: string,
+  value: number
+): Promise<MaterialPropertyValue> => {
+  const response = await axios.post(getApiUrl(`/material-properties/material/${materialId}/property/${propertyId}`), {
+    propertyValue: value
+  });
+  return response.data;
+};
+
+export const updateMaterialProperty = async (
+  materialId: string,
+  propertyId: string,
+  value: number
+): Promise<MaterialPropertyValue> => {
+  const response = await axios.put(getApiUrl(`/material-properties/material/${materialId}/property/${propertyId}`), {
+    propertyValue: value
+  });
+  return response.data;
+};
+
+export const getMaterialCoefficients = async (materialId: string): Promise<MaterialCoefficientValue[]> => {
+  const response = await axios.get(getApiUrl(`/material-coefficients/material/${materialId}`));
+  return response.data;
+};
+
+export const addMaterialCoefficient = async (
+  materialId: string,
+  coefficientId: string,
+  value: number
+): Promise<MaterialCoefficientValue> => {
+  const response = await axios.post(getApiUrl(`/material-coefficients/material/${materialId}/coefficient/${coefficientId}`), {
+    coefficientValue: value
+  });
+  return response.data;
+};
+
+export const updateMaterialCoefficient = async (
+  materialId: string,
+  coefficientId: string,
+  value: number
+): Promise<MaterialCoefficientValue> => {
+  const response = await axios.put(getApiUrl(`/material-coefficients/material/${materialId}/coefficient/${coefficientId}`), {
+    coefficientValue: value
+  });
+  return response.data;
 }; 

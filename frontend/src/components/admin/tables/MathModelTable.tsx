@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Paper,
   Table,
@@ -20,72 +20,35 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  CircularProgress
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-
-// Math Model type definition
-interface MathModel {
-  id: number;
-  consistencyCoefficient: number;
-  tempViscosityCoefficient: number;
-  castingTemperature: number;
-  flowIndex: number;
-  coverHeatTransferCoefficient: number;
-  materialId: number;
-  materialName: string;
-}
-
-// Material type definition
-interface Material {
-  id: number;
-  name: string;
-}
-
-// Mock data
-const mockMaterials: Material[] = [
-  { id: 1, name: 'PLA' },
-  { id: 2, name: 'ABS' },
-  { id: 3, name: 'PET' }
-];
-
-const initialMathModels: MathModel[] = [
-  { 
-    id: 1, 
-    consistencyCoefficient: 780, 
-    tempViscosityCoefficient: 0.007, 
-    castingTemperature: 160, 
-    flowIndex: 0.35, 
-    coverHeatTransferCoefficient: 50,
-    materialId: 1,
-    materialName: 'PLA'
-  },
-  { 
-    id: 2, 
-    consistencyCoefficient: 650, 
-    tempViscosityCoefficient: 0.009, 
-    castingTemperature: 230, 
-    flowIndex: 0.40, 
-    coverHeatTransferCoefficient: 55,
-    materialId: 2,
-    materialName: 'ABS'
-  }
-];
+import { 
+  MathModel,
+  getAllMathModels,
+  createMathModel,
+  updateMathModel,
+  deleteMathModel
+} from '../../../services/mathModelService';
+import { Material, getAllMaterials } from '../../../services/materialService';
 
 interface MathModelFormData {
-  id: number | null;
+  id: string | null;
   consistencyCoefficient: string;
   tempViscosityCoefficient: string;
   castingTemperature: string;
   flowIndex: string;
   coverHeatTransferCoefficient: string;
-  materialId: number;
+  materialId: string;
 }
 
 const MathModelTable: React.FC = () => {
-  const [mathModels, setMathModels] = useState<MathModel[]>(initialMathModels);
+  const [mathModels, setMathModels] = useState<MathModel[]>([]);
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<MathModelFormData>({
     id: null,
@@ -94,10 +57,32 @@ const MathModelTable: React.FC = () => {
     castingTemperature: '',
     flowIndex: '',
     coverHeatTransferCoefficient: '',
-    materialId: 0
+    materialId: ''
   });
   const [isEdit, setIsEdit] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [mathModelsData, materialsData] = await Promise.all([
+        getAllMathModels(),
+        getAllMaterials()
+      ]);
+      setMathModels(mathModelsData);
+      setMaterials(materialsData);
+      setError(null);
+    } catch (err) {
+      console.error('Ошибка при загрузке данных:', err);
+      setError('Ошибка при загрузке данных');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateNumericInput = (value: string): boolean => {
     const numValue = parseFloat(value);
@@ -122,7 +107,7 @@ const MathModelTable: React.FC = () => {
       castingTemperature: '',
       flowIndex: '',
       coverHeatTransferCoefficient: '',
-      materialId: 0
+      materialId: ''
     });
     setIsEdit(false);
     setError(null);
@@ -144,7 +129,7 @@ const MathModelTable: React.FC = () => {
   };
 
   const validateForm = (): boolean => {
-    if (formData.materialId === 0) {
+    if (!formData.materialId) {
       setError('Пожалуйста, выберите материал');
       return false;
     }
@@ -177,51 +162,33 @@ const MathModelTable: React.FC = () => {
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
 
-    const selectedMaterial = mockMaterials.find(m => m.id === formData.materialId);
-    if (!selectedMaterial) {
-      setError('Выбранный материал не найден');
-      return;
-    }
-
-    if (isEdit) {
-      // Update existing math model
-      setMathModels(
-        mathModels.map((model) =>
-          model.id === formData.id
-            ? {
-                ...model,
-                consistencyCoefficient: parseFloat(formData.consistencyCoefficient),
-                tempViscosityCoefficient: parseFloat(formData.tempViscosityCoefficient),
-                castingTemperature: parseFloat(formData.castingTemperature),
-                flowIndex: parseFloat(formData.flowIndex),
-                coverHeatTransferCoefficient: parseFloat(formData.coverHeatTransferCoefficient),
-                materialId: formData.materialId,
-                materialName: selectedMaterial.name
-              }
-            : model
-        )
-      );
-    } else {
-      // Add new math model
-      const newMathModel: MathModel = {
-        id: mathModels.length > 0 ? Math.max(...mathModels.map((m) => m.id)) + 1 : 1,
+    try {
+      const modelData = {
         consistencyCoefficient: parseFloat(formData.consistencyCoefficient),
         tempViscosityCoefficient: parseFloat(formData.tempViscosityCoefficient),
         castingTemperature: parseFloat(formData.castingTemperature),
         flowIndex: parseFloat(formData.flowIndex),
         coverHeatTransferCoefficient: parseFloat(formData.coverHeatTransferCoefficient),
-        materialId: formData.materialId,
-        materialName: selectedMaterial.name
+        materialId: formData.materialId
       };
-      setMathModels([...mathModels, newMathModel]);
-    }
 
-    handleClose();
+      if (isEdit && formData.id) {
+        await updateMathModel(formData.id, modelData);
+      } else {
+        await createMathModel(modelData);
+      }
+
+      await fetchData();
+      handleClose();
+    } catch (err) {
+      console.error('Ошибка при сохранении математической модели:', err);
+      setError('Ошибка при сохранении математической модели');
+    }
   };
 
   const handleEdit = (model: MathModel) => {
@@ -238,8 +205,18 @@ const MathModelTable: React.FC = () => {
     setOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    setMathModels(mathModels.filter((model) => model.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Вы уверены, что хотите удалить эту математическую модель?')) {
+      return;
+    }
+
+    try {
+      await deleteMathModel(id);
+      await fetchData();
+    } catch (err) {
+      console.error('Ошибка при удалении математической модели:', err);
+      setError('Ошибка при удалении математической модели');
+    }
   };
 
   return (
@@ -255,48 +232,58 @@ const MathModelTable: React.FC = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Материал</TableCell>
-              <TableCell>Коэф. консистенции</TableCell>
-              <TableCell>Темп. коэф. вязкости</TableCell>
-              <TableCell>Темп. приведения (°C)</TableCell>
-              <TableCell>Индекс течения</TableCell>
-              <TableCell>Коэф. теплоотдачи крышки</TableCell>
-              <TableCell align="right">Действия</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {mathModels.map((model) => (
-              <TableRow key={model.id}>
-                <TableCell component="th" scope="row">
-                  {model.id}
-                </TableCell>
-                <TableCell>{model.materialName}</TableCell>
-                <TableCell>{model.consistencyCoefficient}</TableCell>
-                <TableCell>{model.tempViscosityCoefficient}</TableCell>
-                <TableCell>{model.castingTemperature}</TableCell>
-                <TableCell>{model.flowIndex}</TableCell>
-                <TableCell>{model.coverHeatTransferCoefficient}</TableCell>
-                <TableCell align="right">
-                  <IconButton color="primary" onClick={() => handleEdit(model)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton color="error" onClick={() => handleDelete(model.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell>Материал</TableCell>
+                <TableCell>Коэффициент консистенции</TableCell>
+                <TableCell>Температурный коэффициент вязкости</TableCell>
+                <TableCell>Температура приведения (°C)</TableCell>
+                <TableCell>Индекс течения</TableCell>
+                <TableCell>Коэффициент теплоотдачи крышки</TableCell>
+                <TableCell align="right">Действия</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {mathModels.map((model) => (
+                <TableRow key={model.id}>
+                  <TableCell>{model.materialName}</TableCell>
+                  <TableCell>{model.consistencyCoefficient}</TableCell>
+                  <TableCell>{model.tempViscosityCoefficient}</TableCell>
+                  <TableCell>{model.castingTemperature}</TableCell>
+                  <TableCell>{model.flowIndex}</TableCell>
+                  <TableCell>{model.coverHeatTransferCoefficient}</TableCell>
+                  <TableCell align="right">
+                    <IconButton onClick={() => handleEdit(model)} color="primary">
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleDelete(model.id)} color="error">
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>{isEdit ? 'Редактировать модель' : 'Добавить модель'}</DialogTitle>
+        <DialogTitle>
+          {isEdit ? 'Редактировать модель' : 'Добавить модель'}
+        </DialogTitle>
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -313,8 +300,8 @@ const MathModelTable: React.FC = () => {
               label="Материал"
               onChange={handleSelectChange}
             >
-              <MenuItem value={0} disabled>Выберите материал</MenuItem>
-              {mockMaterials.map((material) => (
+              <MenuItem value="" disabled>Выберите материал</MenuItem>
+              {materials.map((material) => (
                 <MenuItem key={material.id} value={material.id}>
                   {material.name}
                 </MenuItem>
@@ -324,73 +311,68 @@ const MathModelTable: React.FC = () => {
 
           <TextField
             margin="dense"
-            id="consistencyCoefficient"
             name="consistencyCoefficient"
             label="Коэффициент консистенции"
             type="number"
             fullWidth
-            variant="outlined"
             value={formData.consistencyCoefficient}
             onChange={handleInputChange}
             inputProps={{ min: 0, step: "0.1" }}
+            sx={{ mb: 2 }}
           />
           
           <TextField
             margin="dense"
-            id="tempViscosityCoefficient"
             name="tempViscosityCoefficient"
             label="Температурный коэффициент вязкости"
             type="number"
             fullWidth
-            variant="outlined"
             value={formData.tempViscosityCoefficient}
             onChange={handleInputChange}
             inputProps={{ min: 0, step: "0.001" }}
+            sx={{ mb: 2 }}
           />
 
           <TextField
             margin="dense"
-            id="castingTemperature"
             name="castingTemperature"
             label="Температура приведения (°C)"
             type="number"
             fullWidth
-            variant="outlined"
             value={formData.castingTemperature}
             onChange={handleInputChange}
             inputProps={{ min: 0, step: "0.1" }}
+            sx={{ mb: 2 }}
           />
 
           <TextField
             margin="dense"
-            id="flowIndex"
             name="flowIndex"
             label="Индекс течения материала"
             type="number"
             fullWidth
-            variant="outlined"
             value={formData.flowIndex}
             onChange={handleInputChange}
             inputProps={{ min: 0, step: "0.01" }}
+            sx={{ mb: 2 }}
           />
 
           <TextField
             margin="dense"
-            id="coverHeatTransferCoefficient"
             name="coverHeatTransferCoefficient"
             label="Коэффициент теплоотдачи крышки"
             type="number"
             fullWidth
-            variant="outlined"
             value={formData.coverHeatTransferCoefficient}
             onChange={handleInputChange}
             inputProps={{ min: 0, step: "0.1" }}
+            sx={{ mb: 2 }}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Отмена</Button>
-          <Button onClick={handleSubmit}>
-            {isEdit ? 'Обновить' : 'Добавить'}
+          <Button onClick={handleSubmit} variant="contained">
+            {isEdit ? 'Сохранить' : 'Добавить'}
           </Button>
         </DialogActions>
       </Dialog>

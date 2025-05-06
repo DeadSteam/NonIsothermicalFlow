@@ -3,35 +3,46 @@ import axios from 'axios';
 const API_URL = 'http://localhost:8080/api/math/simulation';
 
 export interface MathModel {
-  width: number;                  // Ширина канала (W), м
-  depth: number;                  // Глубина канала (H), м
-  length: number;                 // Длина канала (L), м
-  density: number;                // Плотность (ρ), кг/м³
-  heatCapacity: number;           // Удельная теплоемкость (c), Дж/(кг·°C)
-  glassTransitionTemp: number;    // Температура стеклования (Tg), °С
-  meltingTemp: number;            // Температура плавления (T0), °C
-  coverSpeed: number;             // Скорость крышки (Vu), м/с
-  coverTemp: number;              // Температура крышки (Tu), °C
-  mu0: number;                    // Коэффициент консистенции (μ0), Па·с^n
-  firstConstantVLF: number;       // Первая константа уравнения ВЛФ, C1,g
-  secondConstantVLF: number;      // Вторая константа уравнения ВЛФ, C2,g , °С
-  castingTemp: number;            // Температура приведения (Tr), °C
-  flowIndex: number;              // Индекс течения (n)
-  heatTransfer: number;           // Коэффициент теплоотдачи (αu), Вт/(м²·°C)
-  step: number;                   // Шаг расчета (Δz), м
-  displayStep: number;            // Шаг отображения таблицы, м
+  // Геометрические параметры
+  width: number;          // Ширина канала (м)
+  depth: number;          // Глубина канала (м)
+  length: number;         // Длина канала (м)
+  
+  // Свойства материала
+  density: number;        // Плотность (кг/м³)
+  heatCapacity: number;   // Теплоёмкость (Дж/(кг·°C))
+  glassTransitionTemp: number; // Температура стеклования (°C)
+  meltingTemp: number;    // Температура плавления (°C)
+  
+  // Варьируемые параметры процесса
+  coverSpeed: number;     // Скорость движения крышки (м/с)
+  coverTemp: number;      // Температура крышки (°C)
+  castingTemp: number;    // Температура литья (°C)
+  
+  // Эмпирические коэффициенты
+  mu0: number;           // Начальная вязкость (Па·с)
+  firstConstantVLF: number; // Первая константа ВЛФ
+  secondConstantVLF: number; // Вторая константа ВЛФ
+  flowIndex: number;     // Индекс течения
+  heatTransfer: number;  // Коэффициент теплоотдачи (Вт/(м²·°C))
+  
+  // Параметры метода решения
+  step: number;          // Шаг сетки (м)
+  displayStep: number;   // Количество пропусков шагов при выводе в таблицу
 }
 
 export interface ResultModel {
-  positions: number[];            // z, м
-  temperatures: number[];         // T, °C
-  viscosities: number[];          // η, Па·с
-  productivity: number;           // Q, кг/ч
-  finalTemperature: number;       // Tp, °C
-  finalViscosity: number;         // ηp, Па·с
-  calculationTime: number;        // Время расчета, мс
-  operationsCount: number;        // Количество математических операций
-  memoryUsage: number;            // Использованная память, байт
+  // Показатели экономичности
+  calculationTime: number;  // Время расчёта (с)
+  memoryUsage: number;     // Использовано памяти (байты)
+  operationsCount: number;  // Количество операций
+  
+  // Результаты расчёта
+  positions: number[];     // Координаты точек (м)
+  temperatures: number[];  // Температура в точках (°C)
+  viscosities: number[];  // Вязкость в точках (Па·с)
+  velocities: number[];   // Скорость в точках (м/с)
+  pressures: number[];    // Давление в точках (Па)
 }
 
 export const runSimulation = async (model: MathModel): Promise<ResultModel> => {

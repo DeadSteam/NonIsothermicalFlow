@@ -1,15 +1,20 @@
 {
   "short_name": "FLOWMODEL",
-  "name": "FLOWMODEL - Приложение для исследования химических процессов",
+  "name": "FLOWMODEL - Моделирование течения материалов",
   "icons": [
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#3a7ebf",
+  "background_color": "#f0f0f0"
 } 
