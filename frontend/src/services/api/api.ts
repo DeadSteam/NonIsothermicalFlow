@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User } from '../../context/AuthContext';
+import { User, JwtResponse } from '../../types/User';
 
 // API URL for backend connection
 const API_URL = 'http://localhost:8080/api';
@@ -14,64 +14,93 @@ const api = axios.create({
 
 // Add authorization header for authenticated requests
 api.interceptors.request.use((config) => {
-  const user = localStorage.getItem('user');
-  if (user) {
-    config.headers.Authorization = `Bearer ${JSON.parse(user).token}`;
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    const user = JSON.parse(userStr);
+    if (user.token) {
+      config.headers.Authorization = `Bearer ${user.token}`;
+    }
   }
   return config;
 });
 
-// Эмуляция ответа API для аутентификации
-const mockUserResponse = (username: string): User => {
-  // Определение роли в зависимости от имени пользователя
-  const role = username.toLowerCase().includes('admin') ? 'Администратор' : 'Исследователь';
-  
-  return {
-    id: Math.floor(Math.random() * 1000),
-    username,
-    role,
-    token: `mock-token-${Date.now()}`
-  };
-};
+// Обработка ошибок авторизации
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Если получаем 401 Unauthorized, очищаем localStorage и перенаправляем на страницу логина
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
-// Эмуляция API сервисов
+// Сервисы аутентификации
 export const authService = {
   login: async (username: string, password: string): Promise<User> => {
-    // Имитация задержки сети
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Проверка логина и пароля (простая эмуляция)
-    if (!username || !password) {
-      throw new Error('Имя пользователя и пароль обязательны');
+    try {
+      const response = await api.post<JwtResponse>('/auth/login', { username, password });
+      
+      // Преобразуем ответ с сервера в формат, используемый на клиенте
+      const userData: User = {
+        id: response.data.id,
+        username: response.data.username,
+        role: response.data.roles.includes('ROLE_ADMIN') ? 'ADMIN' : 'USER',
+        token: response.data.token
+      };
+      
+      return userData;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(error.response.data.message || 'Ошибка аутентификации');
+      }
+      throw new Error('Сервер недоступен. Пожалуйста, попробуйте позже.');
     }
-    
-    if (password.length < 4) {
-      throw new Error('Пароль должен содержать не менее 4 символов');
-    }
-    
-    // Возвращаем мок-ответ
-    return mockUserResponse(username);
   },
   
   signup: async (username: string, password: string): Promise<User> => {
-    // Имитация задержки сети
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Проверка данных
-    if (!username || !password) {
-      throw new Error('Имя пользователя и пароль обязательны');
+    try {
+      // Регистрация пользователя
+      await api.post('/auth/register', { username, password });
+      
+      // После успешной регистрации выполняем вход
+      return await authService.login(username, password);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(error.response.data.message || 'Ошибка регистрации');
+      }
+      throw new Error('Сервер недоступен. Пожалуйста, попробуйте позже.');
     }
-    
-    if (username.length < 3) {
-      throw new Error('Имя пользователя должно содержать не менее 3 символов');
+  },
+
+  getCurrentUser: async (): Promise<User> => {
+    try {
+      const response = await api.get('/users/me');
+      
+      // Получаем текущего пользователя из localStorage для получения токена
+      const userStr = localStorage.getItem('user');
+      let token = '';
+      if (userStr) {
+        token = JSON.parse(userStr).token;
+      }
+      
+      // Преобразуем ответ с сервера в формат, используемый на клиенте
+      const userData: User = {
+        id: response.data.id,
+        username: response.data.username,
+        role: response.data.role.name === 'ADMIN' ? 'ADMIN' : 'USER',
+        token: token
+      };
+      
+      return userData;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(error.response.data.message || 'Ошибка получения данных пользователя');
+      }
+      throw new Error('Сервер недоступен. Пожалуйста, попробуйте позже.');
     }
-    
-    if (password.length < 6) {
-      throw new Error('Пароль должен содержать не менее 6 символов');
-    }
-    
-    // Возвращаем мок-ответ
-    return mockUserResponse(username);
   }
 };
 
@@ -80,7 +109,11 @@ export const userService = {
   getAllUsers: async (): Promise<User[]> => {
     try {
       const response = await api.get('/users');
-      return response.data;
+      return response.data.map((user: any) => ({
+        id: user.id,
+        username: user.username,
+        role: user.role.name === 'ADMIN' ? 'ADMIN' : 'USER'
+      }));
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(error.response.data.message || 'Ошибка загрузки списка пользователей');
@@ -89,10 +122,14 @@ export const userService = {
     }
   },
   
-  getUserById: async (id: number): Promise<User> => {
+  getUserById: async (id: string): Promise<User> => {
     try {
       const response = await api.get(`/users/${id}`);
-      return response.data;
+      return {
+        id: response.data.id,
+        username: response.data.username,
+        role: response.data.role.name === 'ADMIN' ? 'ADMIN' : 'USER'
+      };
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(error.response.data.message || 'Ошибка загрузки данных пользователя');
@@ -101,22 +138,19 @@ export const userService = {
     }
   },
   
-  createUser: async (user: Omit<User, 'id'>): Promise<User> => {
+  updateUser: async (id: string, username: string, password?: string): Promise<User> => {
     try {
-      const response = await api.post('/users', user);
-      return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(error.response.data.message || 'Ошибка создания пользователя');
-      }
-      throw new Error('Сервер недоступен. Пожалуйста, попробуйте позже.');
-    }
-  },
-  
-  updateUser: async (id: number, user: Partial<User>): Promise<User> => {
-    try {
-      const response = await api.put(`/users/${id}`, user);
-      return response.data;
+      // Создаем параметры для запроса
+      const params = new URLSearchParams();
+      if (username) params.append('username', username);
+      if (password) params.append('password', password);
+
+      const response = await api.put(`/users/${id}?${params.toString()}`);
+      return {
+        id: response.data.id,
+        username: response.data.username,
+        role: response.data.role.name === 'ADMIN' ? 'ADMIN' : 'USER'
+      };
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(error.response.data.message || 'Ошибка обновления пользователя');
@@ -125,7 +159,7 @@ export const userService = {
     }
   },
   
-  deleteUser: async (id: number): Promise<void> => {
+  deleteUser: async (id: string): Promise<void> => {
     try {
       await api.delete(`/users/${id}`);
     } catch (error) {

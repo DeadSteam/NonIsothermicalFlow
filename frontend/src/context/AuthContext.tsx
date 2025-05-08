@@ -1,13 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '../services/api/api';
-
-// Define types
-export interface User {
-  id: number;
-  username: string;
-  role: string;
-  token?: string;
-}
+import { User } from '../types/User';
 
 interface AuthContextType {
   user: User | null;
@@ -16,6 +9,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<void>;
   signup: (username: string, password: string) => Promise<void>;
   logout: () => void;
+  checkAuth: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,15 +19,43 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Проверяем авторизацию при загрузке приложения
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const initAuth = async () => {
+      await checkAuth();
+      setLoading(false);
+    };
+    
+    initAuth();
   }, []);
 
-  // Login function
+  // Проверка авторизации пользователя
+  const checkAuth = async (): Promise<boolean> => {
+    const storedUser = localStorage.getItem('user');
+    
+    if (!storedUser) {
+      setUser(null);
+      return false;
+    }
+    
+    try {
+      // Пытаемся получить текущего пользователя с сервера
+      const currentUser = await authService.getCurrentUser();
+      setUser(currentUser);
+      
+      // Обновляем данные в localStorage
+      localStorage.setItem('user', JSON.stringify(currentUser));
+      
+      return true;
+    } catch (err) {
+      // Если возникла ошибка, очищаем localStorage и устанавливаем user в null
+      localStorage.removeItem('user');
+      setUser(null);
+      return false;
+    }
+  };
+
+  // Функция входа
   const login = async (username: string, password: string) => {
     setLoading(true);
     setError(null);
@@ -41,7 +63,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const response = await authService.login(username, password);
       
-      // Store user info in localStorage
+      // Сохраняем информацию о пользователе в localStorage
       localStorage.setItem('user', JSON.stringify(response));
       setUser(response);
     } catch (err) {
@@ -55,7 +77,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Signup function
+  // Функция регистрации
   const signup = async (username: string, password: string) => {
     setLoading(true);
     setError(null);
@@ -63,7 +85,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const response = await authService.signup(username, password);
       
-      // Store user info in localStorage
+      // Сохраняем информацию о пользователе в localStorage
       localStorage.setItem('user', JSON.stringify(response));
       setUser(response);
     } catch (err) {
@@ -77,24 +99,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Logout function
+  // Функция выхода
   const logout = () => {
     localStorage.removeItem('user');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, error, login, signup, logout, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom hook to use the auth context
+// Хук для использования контекста аутентификации
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth должен использоваться внутри AuthProvider');
   }
   return context;
 }; 

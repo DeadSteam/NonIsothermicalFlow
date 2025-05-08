@@ -1,25 +1,25 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Container, 
   Box, 
   Typography, 
   TextField, 
   Button, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem, 
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('');
   const navigate = useNavigate();
-  const { login, error } = useAuth();
+  const location = useLocation();
+  const { login, error, loading } = useAuth();
+
+  // Получаем предыдущий маршрут, если есть
+  const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,12 +30,8 @@ const Login: React.FC = () => {
 
     try {
       await login(username, password);
-
-      if (role === 'Администратор') {
-        navigate('/admin');
-      } else {
-        navigate('/user');
-      }
+      // После успешного входа перенаправляем на предыдущую страницу или на главную
+      navigate(from, { replace: true });
     } catch (err) {
       console.error('Login failed', err);
     }
@@ -95,9 +91,9 @@ const Login: React.FC = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2, py: 1.5 }}
-            disabled={!username || !password}
+            disabled={loading || !username || !password}
           >
-            Войти
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Войти'}
           </Button>
 
           <Box sx={{ mt: 1, textAlign: 'center' }}>

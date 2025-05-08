@@ -5,32 +5,51 @@ import { Material as MaterialType, MaterialPropertyValue, MaterialCoefficientVal
 export type Material = MaterialType;
 export type { MaterialPropertyValue, MaterialCoefficientValue };
 
+// Создаю axios-инстанс с авторизацией
+const materialApi = axios.create({
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Добавляю интерцептор для авторизованных запросов
+materialApi.interceptors.request.use((config) => {
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    const user = JSON.parse(userStr);
+    if (user.token) {
+      config.headers.Authorization = `Bearer ${user.token}`;
+    }
+  }
+  return config;
+});
+
 export const getAllMaterials = async (): Promise<Material[]> => {
-  const response = await axios.get(getApiUrl('/materials'));
-    return response.data;
+  const response = await materialApi.get(getApiUrl('/materials'));
+  return response.data;
 };
 
 export const getMaterialById = async (id: string): Promise<Material> => {
-  const response = await axios.get(getApiUrl(`/materials/${id}`));
+  const response = await materialApi.get(getApiUrl(`/materials/${id}`));
   return response.data;
 };
 
 export const createMaterial = async (material: Omit<Material, 'id'>): Promise<Material> => {
-  const response = await axios.post(getApiUrl('/materials'), material);
+  const response = await materialApi.post(getApiUrl('/materials'), material);
   return response.data;
 };
 
 export const updateMaterial = async (id: string, material: Partial<Material>): Promise<Material> => {
-  const response = await axios.put(getApiUrl(`/materials/${id}`), material);
+  const response = await materialApi.put(getApiUrl(`/materials/${id}`), material);
   return response.data;
 };
 
 export const deleteMaterial = async (id: string): Promise<void> => {
-  await axios.delete(getApiUrl(`/materials/${id}`));
+  await materialApi.delete(getApiUrl(`/materials/${id}`));
 };
 
 export const getMaterialProperties = async (materialId: string): Promise<MaterialPropertyValue[]> => {
-  const response = await axios.get(getApiUrl(`/material-properties/material/${materialId}`));
+  const response = await materialApi.get(getApiUrl(`/material-properties/material/${materialId}`));
   return response.data;
 };
 
@@ -39,7 +58,7 @@ export const addMaterialProperty = async (
   propertyId: string,
   value: number
 ): Promise<MaterialPropertyValue> => {
-  const response = await axios.post(getApiUrl(`/material-properties/material/${materialId}/property/${propertyId}`), {
+  const response = await materialApi.post(getApiUrl(`/material-properties/material/${materialId}/property/${propertyId}`), {
     propertyValue: value
   });
   return response.data;
@@ -50,14 +69,14 @@ export const updateMaterialProperty = async (
   propertyId: string,
   value: number
 ): Promise<MaterialPropertyValue> => {
-  const response = await axios.put(getApiUrl(`/material-properties/material/${materialId}/property/${propertyId}`), {
+  const response = await materialApi.put(getApiUrl(`/material-properties/material/${materialId}/property/${propertyId}`), {
     propertyValue: value
   });
   return response.data;
 };
 
 export const getMaterialCoefficients = async (materialId: string): Promise<MaterialCoefficientValue[]> => {
-  const response = await axios.get(getApiUrl(`/material-coefficients/material/${materialId}`));
+  const response = await materialApi.get(getApiUrl(`/material-coefficients/material/${materialId}`));
   return response.data;
 };
 
@@ -66,7 +85,7 @@ export const addMaterialCoefficient = async (
   coefficientId: string,
   value: number
 ): Promise<MaterialCoefficientValue> => {
-  const response = await axios.post(getApiUrl(`/material-coefficients/material/${materialId}/coefficient/${coefficientId}`), {
+  const response = await materialApi.post(getApiUrl(`/material-coefficients/material/${materialId}/coefficient/${coefficientId}`), {
     coefficientValue: value
   });
   return response.data;
@@ -77,7 +96,7 @@ export const updateMaterialCoefficient = async (
   coefficientId: string,
   value: number
 ): Promise<MaterialCoefficientValue> => {
-  const response = await axios.put(getApiUrl(`/material-coefficients/material/${materialId}/coefficient/${coefficientId}`), {
+  const response = await materialApi.put(getApiUrl(`/material-coefficients/material/${materialId}/coefficient/${coefficientId}`), {
     coefficientValue: value
   });
     return response.data;

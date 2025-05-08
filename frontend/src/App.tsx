@@ -2,7 +2,6 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { useAuth } from './context/AuthContext';
 import { Container } from '@mui/material';
 import Box from '@mui/material/Box';
 
@@ -15,6 +14,8 @@ import SimulationPage from './components/simulation/SimulationPage';
 import MaterialsComparison from './components/materials/MaterialsComparison';
 import AdminPanel from './components/admin/AdminPanel';
 import Navigation from './components/common/Navigation';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import { useAuth } from './context/AuthContext';
 
 const theme = createTheme({
   palette: {
@@ -59,14 +60,62 @@ const App: React.FC = () => {
         <Navigation />
         <Container sx={{ mt: 3 }}>
           <Routes>
-            <Route path="/login" element={!user ? <Login /> : (user.role === 'Администратор' ? <Navigate to="/admin" /> : <Navigate to="/user" />)} />
-            <Route path="/signup" element={!user ? <SignUp /> : (user.role === 'Администратор' ? <Navigate to="/admin" /> : <Navigate to="/user" />)} />
-            <Route path="/admin" element={/*user && user.role === 'Администратор' ?*/ <AdminDashboard /> /*: <Navigate to="/login" />*/} />
-            <Route path="/user" element={/*user && user.role === 'Исследователь' ?*/ <UserDashboard /> /*: <Navigate to="/login" />*/} />
-            <Route path="/simulation" element={<SimulationPage />} />
-            <Route path="/materials-comparison" element={<MaterialsComparison />} />
+            {/* Публичные маршруты */}
+            <Route 
+              path="/login" 
+              element={!user ? <Login /> : <Navigate to="/" replace />} 
+            />
+            <Route 
+              path="/signup" 
+              element={!user ? <SignUp /> : <Navigate to="/" replace />} 
+            />
+            
+            {/* Защищенные маршруты для админа */}
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin-panel" 
+              element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminPanel />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Защищенные маршруты для всех авторизованных пользователей */}
+            <Route 
+              path="/user" 
+              element={
+                <ProtectedRoute>
+                  <UserDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/simulation" 
+              element={
+                <ProtectedRoute>
+                  <SimulationPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/materials-comparison" 
+              element={
+                <ProtectedRoute>
+                  <MaterialsComparison />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Перенаправление на главную страницу */}
             <Route path="/" element={<Navigate to="/simulation" />} />
-            <Route path="/admin-panel" element={<AdminPanel />} />
           </Routes>
         </Container>
       </Box>

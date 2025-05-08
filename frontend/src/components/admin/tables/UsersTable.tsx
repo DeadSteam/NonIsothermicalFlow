@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Paper,
   Table,
@@ -19,29 +19,28 @@ import {
   MenuItem,
   IconButton,
   Typography,
-  Box
+  Box,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { User } from '../../../context/AuthContext';
-
-// Mock data
-const initialUsers: User[] = [
-  { id: 1, username: 'admin', role: 'Администратор' },
-  { id: 2, username: 'user1', role: 'Исследователь' },
-  { id: 3, username: 'user2', role: 'Исследователь' },
-];
+import { User } from '../../../types/User';
+import { userService } from '../../../services/api/api';
+import { useAuth } from '../../../context/AuthContext';
 
 interface UserFormData {
-  id: number | null;
+  id: string | null;
   username: string;
   password: string;
   role: string;
 }
 
 const UsersTable: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<UserFormData>({
     id: null,
@@ -50,6 +49,26 @@ const UsersTable: React.FC = () => {
     role: '',
   });
   const [isEdit, setIsEdit] = useState(false);
+  const { user } = useAuth();
+
+  // Загрузка пользователей
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const loadedUsers = await userService.getAllUsers();
+        setUsers(loadedUsers);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ошибка загрузки пользователей');
+        console.error('Error loading users:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUsers();
+  }, []);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -85,27 +104,33 @@ const UsersTable: React.FC = () => {
     });
   };
 
-  const handleSubmit = () => {
-    if (isEdit) {
-      // Update existing user
-      setUsers(
-        users.map((user) =>
-          user.id === formData.id
-            ? { ...user, username: formData.username, role: formData.role }
-            : user
-        )
-      );
-    } else {
-      // Add new user
-      const newUser: User = {
-        id: users.length > 0 ? Math.max(...users.map((user) => user.id)) + 1 : 1,
-        username: formData.username,
-        role: formData.role,
-      };
-      setUsers([...users, newUser]);
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      
+      if (isEdit && formData.id) {
+        // Обновление существующего пользователя
+        const updatedUser = await userService.updateUser(
+          formData.id,
+          formData.username,
+          formData.password || undefined
+        );
+        
+        setUsers(users.map(u => u.id === formData.id ? updatedUser : u));
+      } else {
+        // Добавление нового пользователя
+        // В этом случае нужен бы отдельный API-метод для создания пользователя админом
+        // Здесь можно реализовать, когда такой метод будет доступен
+        alert('Функция добавления пользователя через админ-панель временно недоступна');
+        // TODO: Добавить вызов API для создания пользователя
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка при сохранении пользователя');
+      console.error('Error saving user:', err);
+    } finally {
+      setLoading(false);
+      handleClose();
     }
-
-    handleClose();
   };
 
   const handleEdit = (user: User) => {
@@ -119,9 +144,30 @@ const UsersTable: React.FC = () => {
     setOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    setUsers(users.filter((user) => user.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Вы уверены, что хотите удалить этого пользователя?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await userService.deleteUser(id);
+      setUsers(users.filter(user => user.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка при удалении пользователя');
+      console.error('Error deleting user:', err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading && users.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <>
@@ -135,6 +181,12 @@ const UsersTable: React.FC = () => {
           Добавить пользователя
         </Button>
       </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }}>
@@ -153,14 +205,17 @@ const UsersTable: React.FC = () => {
                   {user.id}
                 </TableCell>
                 <TableCell>{user.username}</TableCell>
-                <TableCell>{user.role}</TableCell>
+                <TableCell>{user.role === 'ADMIN' ? 'Администратор' : 'Пользователь'}</TableCell>
                 <TableCell align="right">
                   <IconButton color="primary" onClick={() => handleEdit(user)}>
                     <EditIcon />
                   </IconButton>
-                  <IconButton color="error" onClick={() => handleDelete(user.id)}>
-                    <DeleteIcon />
-                  </IconButton>
+                  {/* Не позволяем удалить самого себя или пользователя с ID=1 (основной админ) */}
+                  {user.id !== '1' && user.id !== (user?.id) && (
+                    <IconButton color="error" onClick={() => handleDelete(user.id)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -187,7 +242,7 @@ const UsersTable: React.FC = () => {
             margin="dense"
             id="password"
             name="password"
-            label="Пароль"
+            label={isEdit ? 'Новый пароль (оставьте пустым, чтобы не менять)' : 'Пароль'}
             type="password"
             fullWidth
             variant="outlined"
@@ -203,8 +258,8 @@ const UsersTable: React.FC = () => {
               label="Роль"
               onChange={handleSelectChange}
             >
-              <MenuItem value="Администратор">Администратор</MenuItem>
-              <MenuItem value="Исследователь">Исследователь</MenuItem>
+              <MenuItem value="ADMIN">Администратор</MenuItem>
+              <MenuItem value="USER">Пользователь</MenuItem>
             </Select>
           </FormControl>
         </DialogContent>

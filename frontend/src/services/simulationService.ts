@@ -1,6 +1,24 @@
 import axios from 'axios';
+import { getApiUrl } from '../config/api.config';
 
-const API_URL = 'http://localhost:8080/api/math/simulation';
+// Создаю axios-инстанс с авторизацией
+const simulationApi = axios.create({
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Добавляю интерцептор для авторизованных запросов
+simulationApi.interceptors.request.use((config) => {
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    const user = JSON.parse(userStr);
+    if (user.token) {
+      config.headers.Authorization = `Bearer ${user.token}`;
+    }
+  }
+  return config;
+});
 
 export interface MathModel {
   width: number;                  // Ширина канала (W), м
@@ -36,7 +54,7 @@ export interface ResultModel {
 
 export const runSimulation = async (model: MathModel): Promise<ResultModel> => {
   try {
-    const response = await axios.post<ResultModel>(API_URL, model);
+    const response = await simulationApi.post<ResultModel>(getApiUrl('/math/simulation'), model);
     return response.data;
   } catch (error) {
     console.error('Ошибка при выполнении моделирования:', error);

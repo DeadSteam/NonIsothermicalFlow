@@ -1,4 +1,4 @@
-package com.example.nonisothermicalflow.configuration;
+package com.example.nonisothermicalflow.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

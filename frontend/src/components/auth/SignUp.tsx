@@ -6,11 +6,8 @@ import {
   Typography, 
   TextField, 
   Button, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem, 
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 
@@ -18,32 +15,40 @@ const SignUp: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
+  
   const navigate = useNavigate();
-  const { signup, error } = useAuth();
+  const { signup, error, loading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
+    // Валидация формы
     if (!username || !password || !confirmPassword) {
+      setFormError('Пожалуйста, заполните все поля');
       return;
     }
-
+    
     if (password !== confirmPassword) {
-      setPasswordError('Пароли не совпадают');
+      setFormError('Пароли не совпадают');
       return;
     }
+    
+    if (username.length < 3) {
+      setFormError('Логин должен содержать не менее 3 символов');
+      return;
+    }
+    
+    if (password.length < 6) {
+      setFormError('Пароль должен содержать не менее 6 символов');
+      return;
+    }
+    
+    setFormError(null);
 
     try {
       await signup(username, password);
-
-      if (role === 'Администратор') {
-        navigate('/admin');
-      } else {
-        navigate('/user');
-      }
+      navigate('/');
     } catch (err) {
       console.error('Registration failed', err);
     }
@@ -66,9 +71,9 @@ const SignUp: React.FC = () => {
           Регистрация
         </Typography>
 
-        {error && (
+        {(formError || error) && (
           <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-            {error}
+            {formError || error}
           </Alert>
         )}
 
@@ -93,9 +98,9 @@ const SignUp: React.FC = () => {
             label="Пароль"
             type="password"
             id="password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            error={!!passwordError}
           />
           <TextField
             margin="normal"
@@ -105,13 +110,9 @@ const SignUp: React.FC = () => {
             label="Подтвердите пароль"
             type="password"
             id="confirmPassword"
+            autoComplete="new-password"
             value={confirmPassword}
-            onChange={(e) => {
-              setConfirmPassword(e.target.value);
-              setPasswordError('');
-            }}
-            error={!!passwordError}
-            helperText={passwordError}
+            onChange={(e) => setConfirmPassword(e.target.value)}
           />
 
           <Button
@@ -119,9 +120,9 @@ const SignUp: React.FC = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2, py: 1.5 }}
-            disabled={!username || !password || !confirmPassword}
+            disabled={loading || !username || !password || !confirmPassword}
           >
-            Зарегистрироваться
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Зарегистрироваться'}
           </Button>
 
           <Box sx={{ mt: 1, textAlign: 'center' }}>
@@ -135,7 +136,7 @@ const SignUp: React.FC = () => {
                 display="inline" 
                 sx={{ textDecoration: 'underline' }}
               >
-                Войти
+                Вход
               </Typography>
             </Link>
           </Box>

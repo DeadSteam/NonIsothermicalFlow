@@ -13,7 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
  * Контроллер для API моделирования неизотермического течения
  */
 @RestController
-@RequestMapping("/api/math")
+@RequestMapping("/api/v1/math")
 public class MathController {
 
     private final MathService mathService;

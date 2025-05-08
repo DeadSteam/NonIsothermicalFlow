@@ -6,6 +6,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenProvider {
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
     @Value("${app.jwt.secret}")
     private String jwtSecret;
@@ -29,43 +32,62 @@ public class JwtTokenProvider {
 
     @PostConstruct
     public void init() {
-        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        try {
+            logger.info("Initializing JWT key");
+            this.key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+            logger.info("JWT key initialized successfully with secure key for HS512");
+        } catch (Exception e) {
+            logger.error("Error initializing JWT key: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to initialize JWT key", e);
+        }
     }
 
     public String generateToken(Authentication authentication) {
-        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
-        
-        List<String> roles = userPrincipal.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
+        try {
+            UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+            
+            List<String> roles = userPrincipal.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toList());
 
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+            logger.info("Generating token for user: {}, with roles: {}", userPrincipal.getUsername(), roles);
 
-        return Jwts.builder()
-                .setSubject(userPrincipal.getUsername())
-                .claim("roles", roles)
-                .claim("userId", userPrincipal.getId())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact();
+            Date now = new Date();
+            Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+
+            return Jwts.builder()
+                    .setSubject(userPrincipal.getUsername())
+                    .claim("roles", roles)
+                    .claim("userId", userPrincipal.getId())
+                    .setIssuedAt(now)
+                    .setExpiration(expiryDate)
+                    .signWith(key, SignatureAlgorithm.HS512)
+                    .compact();
+        } catch (Exception e) {
+            logger.error("Error generating JWT token: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate JWT token", e);
+        }
     }
 
     public String generateTokenFromUser(User user) {
-        List<String> roles = List.of(user.getRole().getName());
+        try {
+            List<String> roles = List.of(user.getRole().getName());
 
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+            Date now = new Date();
+            Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
-        return Jwts.builder()
-                .setSubject(user.getUsername())
-                .claim("roles", roles)
-                .claim("userId", user.getId().toString())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact();
+            return Jwts.builder()
+                    .setSubject(user.getUsername())
+                    .claim("roles", roles)
+                    .claim("userId", user.getId().toString())
+                    .setIssuedAt(now)
+                    .setExpiration(expiryDate)
+                    .signWith(key, SignatureAlgorithm.HS512)
+                    .compact();
+        } catch (Exception e) {
+            logger.error("Error generating JWT token from user: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate JWT token from user", e);
+        }
     }
 
     public String getUsernameFromToken(String token) {
@@ -86,6 +108,7 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (Exception e) {
+            logger.error("Invalid JWT token: {}", e.getMessage());
             return false;
         }
     }
