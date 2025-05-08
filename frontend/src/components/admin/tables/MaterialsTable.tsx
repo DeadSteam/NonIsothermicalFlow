@@ -17,10 +17,7 @@ import {
   Typography,
   Box,
   Alert,
-  CircularProgress,
-  Tabs,
-  Tab,
-  Divider
+  CircularProgress
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -30,55 +27,35 @@ import {
   getAllMaterials, 
   createMaterial, 
   updateMaterial, 
-  deleteMaterial,
-  MaterialPropertyValue,
-  MaterialCoefficientValue,
-  addMaterialProperty,
-  updateMaterialProperty,
-  addMaterialCoefficient,
-  updateMaterialCoefficient
+  deleteMaterial 
 } from '../../../services/materialService';
-import { MaterialProperty, getAllProperties } from '../../../services/propertyService';
-import { EmpiricalCoefficient, getAllCoefficients } from '../../../services/coefficientService';
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-const TabPanel: React.FC<TabPanelProps> = (props) => {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
-};
 
 interface MaterialFormData {
   id: string | null;
   name: string;
   materialType: string;
-  propertyValues: MaterialPropertyValue[];
-  coefficientValues: MaterialCoefficientValue[];
+  propertyValues: Array<{
+    property: {
+      id: string;
+      propertyName: string;
+      unitOfMeasurement: string;
+    };
+    propertyValue: number;
+  }>;
+  coefficientValues: Array<{
+    coefficient: {
+      id: string;
+      coefficientName: string;
+      unitOfMeasurement: string;
+    };
+    coefficientValue: number;
+  }>;
 }
 
 const MaterialsTable: React.FC = () => {
   const [materials, setMaterials] = useState<Material[]>([]);
-  const [properties, setProperties] = useState<MaterialProperty[]>([]);
-  const [coefficients, setCoefficients] = useState<EmpiricalCoefficient[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const [tabValue, setTabValue] = useState(0);
   const [formData, setFormData] = useState<MaterialFormData>({
     id: null,
     name: '',
@@ -90,56 +67,20 @@ const MaterialsTable: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        await Promise.all([
-          fetchMaterials(),
-          fetchProperties(),
-          fetchCoefficients()
-        ]);
-      } catch (err) {
-        console.error('Ошибка при загрузке данных:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
+    fetchMaterials();
   }, []);
 
   const fetchMaterials = async () => {
     try {
+      setLoading(true);
       const data = await getAllMaterials();
       setMaterials(data);
       setError(null);
     } catch (err) {
       console.error('Ошибка при загрузке материалов:', err);
       setError('Ошибка при загрузке материалов');
-    }
-  };
-
-  const fetchProperties = async () => {
-    try {
-      console.log('Загрузка свойств...');
-      const data = await getAllProperties();
-      console.log('Загружены свойства:', data);
-      setProperties(data);
-    } catch (err) {
-      console.error('Ошибка при загрузке свойств:', err);
-      setError('Ошибка при загрузке свойств материалов');
-    }
-  };
-
-  const fetchCoefficients = async () => {
-    try {
-      console.log('Загрузка коэффициентов...');
-      const data = await getAllCoefficients();
-      console.log('Загружены коэффициенты:', data);
-      setCoefficients(data);
-    } catch (err) {
-      console.error('Ошибка при загрузке коэффициентов:', err);
-      setError('Ошибка при загрузке коэффициентов материалов');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -163,11 +104,6 @@ const MaterialsTable: React.FC = () => {
     });
     setIsEdit(false);
     setError(null);
-    setTabValue(0);
-  };
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,66 +111,6 @@ const MaterialsTable: React.FC = () => {
     setFormData({
       ...formData,
       [name]: value,
-    });
-  };
-
-  const handlePropertyValueChange = (propertyId: string, value: string) => {
-    const numValue = parseFloat(value);
-    if (isNaN(numValue)) return;
-
-    setFormData(prev => {
-      const propertyValues = [...prev.propertyValues];
-      const existingIndex = propertyValues.findIndex(pv => pv.property.id === propertyId);
-      
-      if (existingIndex >= 0) {
-        propertyValues[existingIndex] = {
-          ...propertyValues[existingIndex],
-          propertyValue: numValue
-        };
-      } else {
-        const property = properties.find(p => p.id === propertyId);
-        if (property) {
-          propertyValues.push({
-            property,
-            propertyValue: numValue
-          });
-        }
-      }
-
-      return {
-        ...prev,
-        propertyValues
-      };
-    });
-  };
-
-  const handleCoefficientValueChange = (coefficientId: string, value: string) => {
-    const numValue = parseFloat(value);
-    if (isNaN(numValue)) return;
-
-    setFormData(prev => {
-      const coefficientValues = [...prev.coefficientValues];
-      const existingIndex = coefficientValues.findIndex(cv => cv.coefficient.id === coefficientId);
-      
-      if (existingIndex >= 0) {
-        coefficientValues[existingIndex] = {
-          ...coefficientValues[existingIndex],
-          coefficientValue: numValue
-        };
-      } else {
-        const coefficient = coefficients.find(c => c.id === coefficientId);
-        if (coefficient) {
-          coefficientValues.push({
-            coefficient,
-            coefficientValue: numValue
-          });
-        }
-      }
-
-      return {
-        ...prev,
-        coefficientValues
-      };
     });
   };
 
@@ -259,16 +135,21 @@ const MaterialsTable: React.FC = () => {
 
     try {
       if (isEdit && formData.id) {
-        const materialData: Partial<Material> = {
-          id: formData.id,
+        const updateData = {
           name: formData.name,
           materialType: formData.materialType,
           propertyValues: formData.propertyValues,
           coefficientValues: formData.coefficientValues
         };
-        await updateMaterial(formData.id, materialData);
+        await updateMaterial(formData.id, updateData);
       } else {
-        await createMaterial(formData);
+        const createData = {
+          name: formData.name,
+          materialType: formData.materialType,
+          propertyValues: formData.propertyValues,
+          coefficientValues: formData.coefficientValues
+        };
+        await createMaterial(createData);
       }
       await fetchMaterials();
       handleClose();
@@ -283,8 +164,8 @@ const MaterialsTable: React.FC = () => {
       id: material.id,
       name: material.name,
       materialType: material.materialType,
-      propertyValues: material.propertyValues || [],
-      coefficientValues: material.coefficientValues || []
+      propertyValues: material.propertyValues,
+      coefficientValues: material.coefficientValues
     });
     setIsEdit(true);
     setOpen(true);
@@ -302,16 +183,6 @@ const MaterialsTable: React.FC = () => {
       console.error('Ошибка при удалении материала:', err);
       setError('Ошибка при удалении материала');
     }
-  };
-
-  const getPropertyValue = (material: Material, propertyId: string): number | null => {
-    const propertyValue = material.propertyValues?.find(pv => pv.property.id === propertyId);
-    return propertyValue ? propertyValue.propertyValue : null;
-  };
-
-  const getCoefficientValue = (material: Material, coefficientId: string): number | null => {
-    const coefficientValue = material.coefficientValues?.find(cv => cv.coefficient.id === coefficientId);
-    return coefficientValue ? coefficientValue.coefficientValue : null;
   };
 
   return (
@@ -339,13 +210,13 @@ const MaterialsTable: React.FC = () => {
         </Box>
       ) : (
         <TableContainer component={Paper}>
-          <Table>
+          <Table sx={{ minWidth: 650 }}>
             <TableHead>
               <TableRow>
                 <TableCell>Название</TableCell>
                 <TableCell>Тип материала</TableCell>
-                <TableCell>Свойства</TableCell>
-                <TableCell>Коэффициенты</TableCell>
+                <TableCell>Количество свойств</TableCell>
+                <TableCell>Количество коэффициентов</TableCell>
                 <TableCell align="right">Действия</TableCell>
               </TableRow>
             </TableHead>
@@ -354,20 +225,8 @@ const MaterialsTable: React.FC = () => {
                 <TableRow key={material.id}>
                   <TableCell>{material.name}</TableCell>
                   <TableCell>{material.materialType}</TableCell>
-                  <TableCell>
-                    {material.propertyValues?.map((pv) => (
-                      <div key={pv.property.id}>
-                        {pv.property.propertyName}: {pv.propertyValue} {pv.property.unitOfMeasurement}
-                      </div>
-                    ))}
-                  </TableCell>
-                  <TableCell>
-                    {material.coefficientValues?.map((cv) => (
-                      <div key={cv.coefficient.id}>
-                        {cv.coefficient.coefficientName}: {cv.coefficientValue} {cv.coefficient.unitOfMeasurement}
-                      </div>
-                    ))}
-                  </TableCell>
+                  <TableCell>{material.propertyValues?.length || 0}</TableCell>
+                  <TableCell>{material.coefficientValues?.length || 0}</TableCell>
                   <TableCell align="right">
                     <IconButton onClick={() => handleEdit(material)} color="primary">
                       <EditIcon />
@@ -383,69 +242,41 @@ const MaterialsTable: React.FC = () => {
         </TableContainer>
       )}
 
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+      <Dialog open={open} onClose={handleClose}>
         <DialogTitle>
           {isEdit ? 'Редактировать материал' : 'Добавить материал'}
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-            <Tabs value={tabValue} onChange={handleTabChange}>
-              <Tab label="Основная информация" />
-              <Tab label="Свойства" />
-              <Tab label="Коэффициенты" />
-            </Tabs>
-          </Box>
-
-          <TabPanel value={tabValue} index={0}>
-            <TextField
-              fullWidth
-              label="Название материала"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Тип материала"
-              name="materialType"
-              value={formData.materialType}
-              onChange={handleInputChange}
-              margin="normal"
-            />
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={1}>
-            {properties.map((property) => (
-              <TextField
-                key={property.id}
-                fullWidth
-                label={`${property.propertyName} (${property.unitOfMeasurement})`}
-                type="number"
-                value={formData.propertyValues.find(pv => pv.property.id === property.id)?.propertyValue || ''}
-                onChange={(e) => handlePropertyValueChange(property.id, e.target.value)}
-                margin="normal"
-              />
-            ))}
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={2}>
-            {coefficients.map((coefficient) => (
-              <TextField
-                key={coefficient.id}
-                fullWidth
-                label={`${coefficient.coefficientName} (${coefficient.unitOfMeasurement})`}
-                type="number"
-                value={formData.coefficientValues.find(cv => cv.coefficient.id === coefficient.id)?.coefficientValue || ''}
-                onChange={(e) => handleCoefficientValueChange(coefficient.id, e.target.value)}
-                margin="normal"
-              />
-            ))}
-          </TabPanel>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+          <TextField
+            autoFocus
+            margin="dense"
+            name="name"
+            label="Название материала"
+            type="text"
+            fullWidth
+            value={formData.name}
+            onChange={handleInputChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            name="materialType"
+            label="Тип материала"
+            type="text"
+            fullWidth
+            value={formData.materialType}
+            onChange={handleInputChange}
+            sx={{ mb: 2 }}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Отмена</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">
+          <Button onClick={handleSubmit} variant="contained">
             {isEdit ? 'Сохранить' : 'Добавить'}
           </Button>
         </DialogActions>

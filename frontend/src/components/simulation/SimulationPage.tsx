@@ -77,44 +77,44 @@ const textFieldStyles = {
   }
 };
 
-// Обновляем интерфейс для отображения результатов в таблице
-interface TableRow {
+/**
+ * Функция для подготовки данных для таблицы с заданным шагом
+ * @param positions массив позиций
+ * @param data массив данных (температура или вязкость)
+ * @param displayStep шаг отображения в метрах
+ * @returns массив объектов для таблицы
+ */
+interface TableDataItem {
   position: number;
-  temperature: number;
-  viscosity: number;
-  velocity: number;
-  pressure: number;
+  value: number;
 }
 
-// Функция для подготовки данных таблицы
-const prepareTableData = (result: ResultModel, displayStep: number): TableRow[] => {
-  if (!result.positions.length) return [];
+const prepareTableData = (
+  positions: number[], 
+  data: number[], 
+  displayStep: number
+): TableDataItem[] => {
+  if (!positions.length || !data.length) return [];
   
-  const tableData: TableRow[] = [];
-  const maxPos = result.positions[result.positions.length - 1];
+  const tableData: TableDataItem[] = [];
+  const maxPos = positions[positions.length - 1];
   
   // Первая позиция всегда включается
   tableData.push({
-    position: result.positions[0],
-    temperature: result.temperatures[0],
-    viscosity: result.viscosities[0],
-    velocity: result.velocities[0],
-    pressure: result.pressures[0]
+    position: positions[0],
+    value: data[0]
   });
   
   // Добавляем позиции с шагом displayStep
   let currentStep = displayStep;
   while (currentStep < maxPos) {
     // Найдем ближайшую позицию к текущему шагу
-    const closestIndex = result.positions.findIndex(pos => pos >= currentStep);
+    const closestIndex = positions.findIndex(pos => pos >= currentStep);
     
     if (closestIndex !== -1) {
       tableData.push({
-        position: result.positions[closestIndex],
-        temperature: result.temperatures[closestIndex],
-        viscosity: result.viscosities[closestIndex],
-        velocity: result.velocities[closestIndex],
-        pressure: result.pressures[closestIndex]
+        position: positions[closestIndex],
+        value: data[closestIndex]
       });
     }
     
@@ -122,46 +122,17 @@ const prepareTableData = (result: ResultModel, displayStep: number): TableRow[] 
   }
   
   // Последняя позиция всегда включается, если она еще не добавлена
-  const lastIndex = result.positions.length - 1;
-  if (tableData[tableData.length - 1]?.position !== result.positions[lastIndex]) {
+  const lastPos = positions[positions.length - 1];
+  const lastValue = data[data.length - 1];
+  
+  if (tableData[tableData.length - 1]?.position !== lastPos) {
     tableData.push({
-      position: result.positions[lastIndex],
-      temperature: result.temperatures[lastIndex],
-      viscosity: result.viscosities[lastIndex],
-      velocity: result.velocities[lastIndex],
-      pressure: result.pressures[lastIndex]
+      position: lastPos,
+      value: lastValue
     });
   }
   
   return tableData;
-};
-
-// Стили для графиков
-const chartStyles = {
-  width: '100%',
-  height: 400,
-  padding: 2,
-  backgroundColor: '#fff',
-  borderRadius: 2,
-  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-};
-
-// Стили для таблиц
-const tableStyles = {
-  width: '100%',
-  maxHeight: 500,
-  overflow: 'auto',
-  '& .MuiTableCell-root': {
-    padding: '12px 16px',
-    fontSize: '0.9rem'
-  },
-  '& .MuiTableHead-root': {
-    backgroundColor: '#f5f5f5',
-    '& .MuiTableCell-root': {
-      fontWeight: 600,
-      color: '#1a237e'
-    }
-  }
 };
 
 const SimulationPage: React.FC = () => {
@@ -273,51 +244,40 @@ const SimulationPage: React.FC = () => {
     }
   };
 
-  // Функция для экспорта данных в Excel
+  // Экспорт результатов в Excel
   const handleExportToExcel = () => {
     if (!result) return;
 
-    // Подготовка данных для экспорта
-    const data = [
-      // Параметры модели
-      { 'Параметр': 'Ширина канала (м)', 'Значение': model.width },
-      { 'Параметр': 'Глубина канала (м)', 'Значение': model.depth },
-      { 'Параметр': 'Длина канала (м)', 'Значение': model.length },
-      { 'Параметр': 'Плотность (кг/м³)', 'Значение': model.density },
-      { 'Параметр': 'Теплоёмкость (Дж/(кг·°C))', 'Значение': model.heatCapacity },
-      { 'Параметр': 'Температура стеклования (°C)', 'Значение': model.glassTransitionTemp },
-      { 'Параметр': 'Температура плавления (°C)', 'Значение': model.meltingTemp },
-      { 'Параметр': 'Скорость движения крышки (м/с)', 'Значение': model.coverSpeed },
-      { 'Параметр': 'Температура крышки (°C)', 'Значение': model.coverTemp },
-      { 'Параметр': 'Температура литья (°C)', 'Значение': model.castingTemp },
-      { 'Параметр': 'Начальная вязкость (Па·с)', 'Значение': model.mu0 },
-      { 'Параметр': 'Первая константа ВЛФ', 'Значение': model.firstConstantVLF },
-      { 'Параметр': 'Вторая константа ВЛФ', 'Значение': model.secondConstantVLF },
-      { 'Параметр': 'Индекс течения', 'Значение': model.flowIndex },
-      { 'Параметр': 'Коэффициент теплоотдачи (Вт/(м²·°C))', 'Значение': model.heatTransfer },
-      { 'Параметр': 'Шаг сетки (м)', 'Значение': model.step },
-      { 'Параметр': 'Количество пропусков шагов при выводе в таблицу', 'Значение': model.displayStep },
-      
-      // Показатели экономичности
-      { 'Параметр': 'Время расчёта (с)', 'Значение': result.calculationTime },
-      { 'Параметр': 'Количество операций', 'Значение': result.operationsCount },
-      { 'Параметр': 'Использовано памяти (байт)', 'Значение': result.memoryUsage },
-    ];
-
-    // Создание рабочей книги Excel
-    const wb = XLSX.utils.book_new();
+    const workbook = XLSX.utils.book_new();
     
-    // Создание листа с параметрами
-    const wsParams = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, wsParams, 'Параметры');
+    // Подготовка данных для таблицы результатов
+    const tableData = result.positions.map((pos, index) => ({
+      'Позиция (м)': pos,
+      'Температура (°C)': result.temperatures[index],
+      'Вязкость (Па·с)': result.viscosities[index]
+    }));
 
     // Создание листа с результатами
-    const tableData = prepareTableData(result, model.displayStep);
-    const wsResults = XLSX.utils.json_to_sheet(tableData);
-    XLSX.utils.book_append_sheet(wb, wsResults, 'Результаты');
+    const worksheet = XLSX.utils.json_to_sheet(tableData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Результаты');
+
+    // Подготовка данных для листа с показателями
+    const performanceData = [
+      { 'Показатель': 'Показатели экономичности', 'Значение': '' },
+      { 'Показатель': 'Производительность (кг/ч)', 'Значение': result.productivity },
+      { 'Показатель': 'Конечная температура (°C)', 'Значение': result.finalTemperature },
+      { 'Показатель': 'Конечная вязкость (Па·с)', 'Значение': result.finalViscosity },
+      { 'Показатель': 'Время расчета (мс)', 'Значение': result.calculationTime },
+      { 'Показатель': 'Количество операций', 'Значение': result.operationsCount },
+      { 'Показатель': 'Использованная память (байт)', 'Значение': result.memoryUsage }
+    ];
+
+    // Создание листа с показателями
+    const performanceSheet = XLSX.utils.json_to_sheet(performanceData);
+    XLSX.utils.book_append_sheet(workbook, performanceSheet, 'Показатели');
 
     // Сохранение файла
-    XLSX.writeFile(wb, 'результаты_расчета.xlsx');
+    XLSX.writeFile(workbook, 'результаты_моделирования.xlsx');
   };
 
   // Обработчик выбора материала
@@ -384,642 +344,950 @@ const SimulationPage: React.FC = () => {
     setModel(newModel);
   };
 
-  return (
-    <Box sx={{ 
-      maxWidth: '100%', 
-      margin: '0 auto', 
-      padding: { xs: 2, md: 3 },
-      '@media (min-width: 1920px)': {
-        maxWidth: 1800
+  // Опции для графиков
+  const tempChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      title: {
+        display: true,
+        text: 'Распределение температуры по длине канала',
+        color: '#3f51b5',
+        padding: {
+          top: 10,
+          bottom: 20
+        }
+      },
+      tooltip: {
+        displayColors: false,
+        backgroundColor: 'rgba(53, 71, 125, 0.8)',
+        padding: 12,
+        cornerRadius: 8,
+        callbacks: {
+          title: function(context: any) {
+            return `Координата: ${context[0].label} м`;
+          },
+          label: function(context: any) {
+            return `${context.raw.toFixed(2)} °C`;
+          }
+        }
       }
-    }}>
-      <Typography variant="h4" gutterBottom sx={{ 
-        color: '#1a237e',
-        fontWeight: 600,
-        textAlign: 'center',
-        mb: 4
-      }}>
-        Течения аномально вязких материалов в канале
-      </Typography>
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Координата по длине канала (м)',
+          color: '#3f51b5',
+          padding: {
+            top: 10
+          }
+        },
+        grid: {
+          color: 'rgba(63, 81, 181, 0.1)',
+          borderColor: 'rgba(63, 81, 181, 0.3)',
+          tickColor: 'rgba(63, 81, 181, 0.3)'
+        },
+        ticks: {
+          color: '#666'
+        }
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Температура (°C)',
+          color: '#3f51b5',
+          padding: {
+            bottom: 10
+          }
+        },
+        grid: {
+          color: 'rgba(63, 81, 181, 0.1)',
+          borderColor: 'rgba(63, 81, 181, 0.3)',
+          tickColor: 'rgba(63, 81, 181, 0.3)'
+        },
+        ticks: {
+          color: '#666'
+        }
+      }
+    },
+    elements: {
+      line: {
+        tension: 0.3,
+        borderWidth: 3,
+        fill: true,
+        borderColor: 'rgb(255, 99, 132)'
+      },
+      point: {
+        radius: 0,
+        hoverRadius: 6
+      }
+    }
+  };
 
-      <Grid container spacing={3}>
-        {/* Варьируемые параметры процесса */}
-        <Grid item xs={12}>
-          <Card sx={{ 
-            borderRadius: 2, 
-            boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
-            overflow: 'visible'
-          }}>
-            <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-              <Typography 
-                variant="h5" 
-                gutterBottom 
-                sx={{ fontWeight: 600, color: '#1a237e', mb: 3 }}
-              >
-                Варьируемые параметры процесса
-              </Typography>
-              
-              {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 1 }}>{error}</Alert>}
-              
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Скорость движения крышки (м/с)"
-                    name="coverSpeed"
-                    value={model.coverSpeed}
-                    onChange={handleInputChange}
-                    margin="normal"
-                    variant="outlined"
-                    sx={textFieldStyles}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Температура крышки (°C)"
-                    name="coverTemp"
-                    value={model.coverTemp}
-                    onChange={handleInputChange}
-                    margin="normal"
-                    variant="outlined"
-                    sx={textFieldStyles}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Температура литья (°C)"
-                    name="castingTemp"
-                    value={model.castingTemp}
-                    onChange={handleInputChange}
-                    margin="normal"
-                    variant="outlined"
-                    sx={textFieldStyles}
-                  />
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
+  const viscChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      title: {
+        display: true,
+        text: 'Распределение вязкости по длине канала',
+        color: '#3f51b5',
+        padding: {
+          top: 10,
+          bottom: 20
+        }
+      },
+      tooltip: {
+        displayColors: false,
+        backgroundColor: 'rgba(53, 71, 125, 0.8)',
+        padding: 12,
+        cornerRadius: 8,
+        callbacks: {
+          title: function(context: any) {
+            return `Координата: ${context[0].label} м`;
+          },
+          label: function(context: any) {
+            return `${context.raw.toFixed(1)} Па·с`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Координата по длине канала (м)',
+          color: '#3f51b5',
+          padding: {
+            top: 10
+          }
+        },
+        grid: {
+          color: 'rgba(63, 81, 181, 0.1)',
+          borderColor: 'rgba(63, 81, 181, 0.3)',
+          tickColor: 'rgba(63, 81, 181, 0.3)'
+        },
+        ticks: {
+          color: '#666'
+        }
+      },
+      y: {
+        title: {
+          display: true, 
+          text: 'Вязкость (Па·с)',
+          color: '#3f51b5',
+          padding: {
+            bottom: 10
+          }
+        },
+        grid: {
+          color: 'rgba(63, 81, 181, 0.1)',
+          borderColor: 'rgba(63, 81, 181, 0.3)',
+          tickColor: 'rgba(63, 81, 181, 0.3)'
+        },
+        ticks: {
+          color: '#666'
+        }
+      }
+    },
+    elements: {
+      line: {
+        tension: 0.3,
+        borderWidth: 3,
+        fill: true,
+        borderColor: 'rgb(53, 162, 235)'
+      },
+      point: {
+        radius: 0,
+        hoverRadius: 6
+      }
+    }
+  };
 
-        {/* Входные параметры */}
-        <Grid item xs={12}>
-          <Card sx={{ 
-            borderRadius: 2, 
-            boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
-            overflow: 'visible'
-          }}>
-            <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-              <Typography 
-                variant="h5" 
-                gutterBottom 
-                sx={{ fontWeight: 600, color: '#1a237e', mb: 3 }}
-              >
-                Входные параметры
-              </Typography>
+  // Данные для графиков
+  const tempChartData = result ? {
+    labels: result.positions.map(p => p.toFixed(3)),
+    datasets: [
+      {
+        data: result.temperatures,
+        borderColor: 'rgb(255, 99, 132)',
+        backgroundColor: function(context: any) {
+          const chart = context.chart;
+          const {ctx, chartArea} = chart;
+          if (!chartArea) {
+            return 'rgba(255, 99, 132, 0.5)';
+          }
+          const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+          gradient.addColorStop(0, 'rgba(255, 99, 132, 0)');
+          gradient.addColorStop(1, 'rgba(255, 99, 132, 0.5)');
+          return gradient;
+        },
+        borderWidth: 3,
+        tension: 0.3,
+        fill: true
+      }
+    ],
+  } : null;
 
-              {/* Геометрические параметры канала */}
-              <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'rgba(63, 81, 181, 0.03)', borderRadius: 2 }}>
+  const viscChartData = result ? {
+    labels: result.positions.map(p => p.toFixed(3)),
+    datasets: [
+      {
+        data: result.viscosities,
+        borderColor: 'rgb(53, 162, 235)',
+        backgroundColor: function(context: any) {
+          const chart = context.chart;
+          const {ctx, chartArea} = chart;
+          if (!chartArea) {
+            return 'rgba(53, 162, 235, 0.5)';
+          }
+          const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+          gradient.addColorStop(0, 'rgba(53, 162, 235, 0)');
+          gradient.addColorStop(1, 'rgba(53, 162, 235, 0.5)');
+          return gradient;
+        },
+        borderWidth: 3,
+        tension: 0.3,
+        fill: true
+      }
+    ],
+  } : null;
+
+  return (
+    <Box 
+      sx={{ 
+        p: 4,
+        px: { xs: 2, sm: 4, md: 6, lg: 8 },
+        bgcolor: '#f5f7fa',
+        minHeight: '100vh',
+        width: '100%',
+        position: 'relative',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%)'
+      }}
+    >
+      <Box
+        sx={{
+          maxWidth: '2400px',
+          margin: '0 auto',
+          width: '100%',
+        }}
+      >
+        <Typography 
+          variant="h4" 
+          gutterBottom 
+          sx={{ 
+            mb: 4, 
+            fontWeight: 600, 
+            color: '#1a237e',
+            textAlign: 'center',
+            textShadow: '0px 1px 2px rgba(0,0,0,0.1)'
+          }}
+        >
+          Течения аномально вязких материалов в канале
+        </Typography>
+
+        <Grid container spacing={4}>
+          {/* Варьируемые параметры процесса */}
+          <Grid item xs={12}>
+            <Card sx={{ 
+              borderRadius: 2, 
+              boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
+              overflow: 'visible'
+            }}>
+              <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
                 <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 2,
-                    fontSize: '1.1rem', 
-                    fontWeight: 500,
-                    color: '#283593',
-                    borderBottom: '2px solid #3f51b5',
-                    paddingBottom: 1,
-                    display: 'inline-block'
-                  }}
+                  variant="h5" 
+                  gutterBottom 
+                  sx={{ fontWeight: 600, color: '#1a237e', mb: 3 }}
                 >
-                  Геометрические параметры канала
+                  Режимные параметры процесса
                 </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Ширина канала (м)"
-                      name="width"
-                      value={model.width}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Глубина канала (м)"
-                      name="depth"
-                      value={model.depth}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Длина канала (м)"
-                      name="length"
-                      value={model.length}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-
-              {/* Тип материала */}
-              <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'rgba(63, 81, 181, 0.03)', borderRadius: 2 }}>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 2,
-                    fontSize: '1.1rem', 
-                    fontWeight: 500,
-                    color: '#283593',
-                    borderBottom: '2px solid #3f51b5',
-                    paddingBottom: 1,
-                    display: 'inline-block'
-                  }}
-                >
-                  Тип материала
-                </Typography>
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel id="material-select-label">Материал</InputLabel>
-                  <Select
-                    labelId="material-select-label"
-                    id="material-select"
-                    value={selectedMaterial?.id || ''}
-                    label="Материал"
-                    onChange={handleMaterialChange}
-                    disabled={loading}
-                  >
-                    <MenuItem value="">
-                      <em>Не выбрано</em>
-                    </MenuItem>
-                    {materials.map((material) => (
-                      <MenuItem key={material.id} value={material.id}>
-                        {material.name} ({material.materialType})
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Paper>
-
-              {/* Свойства материала */}
-              <Paper elevation={0} sx={{ p: 3, bgcolor: 'rgba(63, 81, 181, 0.03)', borderRadius: 2 }}>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 2,
-                    fontSize: '1.1rem', 
-                    fontWeight: 500,
-                    color: '#283593',
-                    borderBottom: '2px solid #3f51b5',
-                    paddingBottom: 1,
-                    display: 'inline-block'
-                  }}
-                >
-                  Свойства материала
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Плотность (кг/м³)"
-                      name="density"
-                      value={model.density}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Теплоёмкость (Дж/(кг·°C))"
-                      name="heatCapacity"
-                      value={model.heatCapacity}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Температура стеклования (°C)"
-                      name="glassTransitionTemp"
-                      value={model.glassTransitionTemp}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Температура плавления (°C)"
-                      name="meltingTemp"
-                      value={model.meltingTemp}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Параметры математической модели */}
-        <Grid item xs={12}>
-          <Card sx={{ 
-            borderRadius: 2, 
-            boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
-            overflow: 'visible'
-          }}>
-            <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-              <Typography 
-                variant="h5" 
-                gutterBottom 
-                sx={{ fontWeight: 600, color: '#1a237e', mb: 3 }}
-              >
-                Параметры математической модели
-              </Typography>
-
-              {/* Эмпирические коэффициенты */}
-              <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'rgba(63, 81, 181, 0.03)', borderRadius: 2 }}>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 2,
-                    fontSize: '1.1rem', 
-                    fontWeight: 500,
-                    color: '#283593',
-                    borderBottom: '2px solid #3f51b5',
-                    paddingBottom: 1,
-                    display: 'inline-block'
-                  }}
-                >
-                  Эмпирические коэффициенты
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Начальная вязкость (Па·с)"
-                      name="mu0"
-                      value={model.mu0}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Первая константа ВЛФ"
-                      name="firstConstantVLF"
-                      value={model.firstConstantVLF}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Вторая константа ВЛФ"
-                      name="secondConstantVLF"
-                      value={model.secondConstantVLF}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Индекс течения"
-                      name="flowIndex"
-                      value={model.flowIndex}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Коэффициент теплоотдачи (Вт/(м²·°C))"
-                      name="heatTransfer"
-                      value={model.heatTransfer}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-
-              {/* Параметры метода решения */}
-              <Paper elevation={0} sx={{ p: 3, bgcolor: 'rgba(63, 81, 181, 0.03)', borderRadius: 2 }}>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 2,
-                    fontSize: '1.1rem', 
-                    fontWeight: 500,
-                    color: '#283593',
-                    borderBottom: '2px solid #3f51b5',
-                    paddingBottom: 1,
-                    display: 'inline-block'
-                  }}
-                >
-                  Параметры метода решения
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Шаг сетки (м)"
-                      name="step"
-                      value={model.step}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Количество пропусков шагов при выводе в таблицу"
-                      name="displayStep"
-                      value={model.displayStep}
-                      onChange={handleInputChange}
-                      margin="normal"
-                      variant="outlined"
-                      sx={textFieldStyles}
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-
-              <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', gap: 2 }}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleRunSimulation}
-                  disabled={loading}
-                  size="large"
-                  sx={{ 
-                    minWidth: 220, 
-                    py: 1.5, 
-                    borderRadius: 2,
-                    boxShadow: '0 4px 14px rgba(63, 81, 181, 0.4)',
-                    background: 'linear-gradient(45deg, #3f51b5 30%, #5c6bc0 90%)',
-                    '&:hover': {
-                      boxShadow: '0 6px 18px rgba(63, 81, 181, 0.6)',
-                    }
-                  }}
-                >
-                  {loading ? <CircularProgress size={24} sx={{ color: '#fff' }} /> : 'Запустить расчёт'}
-                </Button>
                 
-                {result && (
+                {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 1 }}>{error}</Alert>}
+                
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Скорость крышки (м/с)"
+                      name="coverSpeed"
+                      value={model.coverSpeed}
+                      onChange={handleInputChange}
+                      margin="normal"
+                      variant="outlined"
+                      sx={textFieldStyles}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Температура крышки (°C)"
+                      name="coverTemp"
+                      value={model.coverTemp}
+                      onChange={handleInputChange}
+                      margin="normal"
+                      variant="outlined"
+                      sx={textFieldStyles}
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Входные параметры */}
+          <Grid item xs={12}>
+            <Card sx={{ 
+              borderRadius: 2, 
+              boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
+              overflow: 'visible'
+            }}>
+              <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+                <Typography 
+                  variant="h5" 
+                  gutterBottom 
+                  sx={{ fontWeight: 600, color: '#1a237e', mb: 3 }}
+                >
+                  Входные параметры
+                </Typography>
+
+                {/* Геометрические параметры канала */}
+                <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'rgba(63, 81, 181, 0.03)', borderRadius: 2 }}>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      mb: 2,
+                      fontSize: '1.1rem', 
+                      fontWeight: 500,
+                      color: '#283593',
+                      borderBottom: '2px solid #3f51b5',
+                      paddingBottom: 1,
+                      display: 'inline-block'
+                    }}
+                  >
+                    Геометрические параметры канала
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Ширина канала (м)"
+                        name="width"
+                        value={model.width}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Глубина канала (м)"
+                        name="depth"
+                        value={model.depth}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Длина канала (м)"
+                        name="length"
+                        value={model.length}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+
+                {/* Тип материала */}
+                <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'rgba(63, 81, 181, 0.03)', borderRadius: 2 }}>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      mb: 2,
+                      fontSize: '1.1rem', 
+                      fontWeight: 500,
+                      color: '#283593',
+                      borderBottom: '2px solid #3f51b5',
+                      paddingBottom: 1,
+                      display: 'inline-block'
+                    }}
+                  >
+                    Тип материала
+                  </Typography>
+                  <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel id="material-select-label">Материал</InputLabel>
+                    <Select
+                      labelId="material-select-label"
+                      id="material-select"
+                      value={selectedMaterial?.id || ''}
+                      label="Материал"
+                      onChange={handleMaterialChange}
+                      disabled={loading}
+                    >
+                      <MenuItem value="">
+                        <em>Не выбрано</em>
+                      </MenuItem>
+                      {materials.map((material) => (
+                        <MenuItem key={material.id} value={material.id}>
+                          {material.name} ({material.materialType})
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Paper>
+
+                {/* Параметры свойств объекта */}
+                <Paper elevation={0} sx={{ p: 3, bgcolor: 'rgba(63, 81, 181, 0.03)', borderRadius: 2 }}>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      mb: 2,
+                      fontSize: '1.1rem', 
+                      fontWeight: 500,
+                      color: '#283593',
+                      borderBottom: '2px solid #3f51b5',
+                      paddingBottom: 1,
+                      display: 'inline-block'
+                    }}
+                  >
+                    Параметры свойств объекта
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} md={3}>
+                      <TextField
+                        fullWidth
+                        label="Плотность (кг/м³)"
+                        name="density"
+                        value={model.density}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                      <TextField
+                        fullWidth
+                        label="Удельная теплоемкость (Дж/(кг·°C))"
+                        name="heatCapacity"
+                        value={model.heatCapacity}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                      <TextField
+                        fullWidth
+                        label="Температура стеклования (°С)"
+                        name="glassTransitionTemp"
+                        value={model.glassTransitionTemp}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                      <TextField
+                        fullWidth
+                        label="Температура плавления (°C)"
+                        name="meltingTemp"
+                        value={model.meltingTemp}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Параметры математической модели */}
+          <Grid item xs={12}>
+            <Card sx={{ 
+              borderRadius: 2, 
+              boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
+              overflow: 'visible'
+            }}>
+              <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+                <Typography 
+                  variant="h5" 
+                  gutterBottom 
+                  sx={{ fontWeight: 600, color: '#1a237e', mb: 3 }}
+                >
+                  Параметры математической модели
+                </Typography>
+
+                {/* Эмпирические коэффициенты модели */}
+                <Paper elevation={0} sx={{ p: 3, mb: 3, bgcolor: 'rgba(63, 81, 181, 0.03)', borderRadius: 2 }}>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      mb: 2,
+                      fontSize: '1.1rem', 
+                      fontWeight: 500,
+                      color: '#283593',
+                      borderBottom: '2px solid #3f51b5',
+                      paddingBottom: 1,
+                      display: 'inline-block'
+                    }}
+                  >
+                    Эмпирические коэффициенты модели
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Коэффициент консистенции (Па·с^n)"
+                        name="mu0"
+                        value={model.mu0}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Первая константа ВЛФ"
+                        name="firstConstantVLF"
+                        value={model.firstConstantVLF}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Вторая константа ВЛФ (°С)"
+                        name="secondConstantVLF"
+                        value={model.secondConstantVLF}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Температура приведения (°C)"
+                        name="castingTemp"
+                        value={model.castingTemp}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Индекс течения"
+                        name="flowIndex"
+                        value={model.flowIndex}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Коэффициент теплоотдачи (Вт/(м²·°C))"
+                        name="heatTransfer"
+                        value={model.heatTransfer}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+
+                {/* Параметры метода решения */}
+                <Paper elevation={0} sx={{ p: 3, bgcolor: 'rgba(63, 81, 181, 0.03)', borderRadius: 2 }}>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      mb: 2,
+                      fontSize: '1.1rem', 
+                      fontWeight: 500,
+                      color: '#283593',
+                      borderBottom: '2px solid #3f51b5',
+                      paddingBottom: 1,
+                      display: 'inline-block'
+                    }}
+                  >
+                    Параметры метода решения
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Шаг расчета (м)"
+                        name="step"
+                        value={model.step}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Количество пропусков шагов при выводе в таблицу"
+                        name="displayStep"
+                        value={model.displayStep}
+                        onChange={handleInputChange}
+                        margin="normal"
+                        variant="outlined"
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+
+                <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', gap: 2 }}>
                   <Button
-                    variant="outlined"
+                    variant="contained"
                     color="primary"
-                    onClick={handleExportToExcel}
+                    onClick={handleRunSimulation}
+                    disabled={loading}
                     size="large"
                     sx={{ 
                       minWidth: 220, 
                       py: 1.5, 
                       borderRadius: 2,
-                      borderColor: '#3f51b5',
-                      color: '#3f51b5',
+                      boxShadow: '0 4px 14px rgba(63, 81, 181, 0.4)',
+                      background: 'linear-gradient(45deg, #3f51b5 30%, #5c6bc0 90%)',
                       '&:hover': {
-                        borderColor: '#5c6bc0',
-                        backgroundColor: 'rgba(63, 81, 181, 0.04)',
+                        boxShadow: '0 6px 18px rgba(63, 81, 181, 0.6)',
                       }
                     }}
                   >
-                    Экспорт в Excel
+                    {loading ? <CircularProgress size={24} sx={{ color: '#fff' }} /> : 'Рассчитать'}
                   </Button>
-                )}
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+                  
+                  {result && (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      onClick={handleExportToExcel}
+                      size="large"
+                      sx={{ 
+                        minWidth: 220, 
+                        py: 1.5, 
+                        borderRadius: 2,
+                        borderColor: '#3f51b5',
+                        color: '#3f51b5',
+                        '&:hover': {
+                          borderColor: '#5c6bc0',
+                          backgroundColor: 'rgba(63, 81, 181, 0.04)',
+                        }
+                      }}
+                    >
+                      Экспорт в Excel
+                    </Button>
+                  )}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
 
-        {/* Результаты расчетов */}
-        {result && (
-          <>
-            <Grid item xs={12}>
-              <Divider sx={{ my: 4, opacity: 0.6 }} />
-              <Typography 
-                variant="h5" 
-                gutterBottom 
-                sx={{ 
-                  mb: 3, 
-                  fontWeight: 600, 
-                  color: '#1a237e',
-                  textAlign: 'center'
-                }}
-              >
-                Показатели экономичности
-              </Typography>
-              <Paper 
-                elevation={0} 
-                sx={{ 
-                  p: 3, 
-                  mb: 4, 
-                  borderRadius: 2, 
-                  boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
-                  border: '1px solid rgba(63, 81, 181, 0.12)',
-                  background: 'linear-gradient(135deg, #ffffff 0%, #f5f7ff 100%)'
-                }}
-              >
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={4}>
-                    <Typography variant="body1">
-                      <strong style={{ color: '#3f51b5' }}>Время расчета:</strong> {result.calculationTime.toFixed(3)} с
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Typography variant="body1">
-                      <strong style={{ color: '#3f51b5' }}>Количество операций:</strong> {result.operationsCount.toLocaleString()}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Typography variant="body1">
-                      <strong style={{ color: '#3f51b5' }}>Использовано памяти:</strong> {formatMemorySize(result.memoryUsage)}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Grid>
-            
-            <Grid container spacing={4} sx={{ mt: 2 }}>
-              <Grid item xs={12} md={6}>
+          {/* Результаты расчетов */}
+          {result && (
+            <>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 4, opacity: 0.6 }} />
+                <Typography 
+                  variant="h5" 
+                  gutterBottom 
+                  sx={{ 
+                    mb: 3, 
+                    fontWeight: 600, 
+                    color: '#1a237e',
+                    textAlign: 'center'
+                  }}
+                >
+                  Показатели экономичности
+                </Typography>
                 <Paper 
                   elevation={0} 
                   sx={{ 
-                    p: 4,
+                    p: 3, 
+                    mb: 4, 
                     borderRadius: 2, 
                     boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
                     border: '1px solid rgba(63, 81, 181, 0.12)',
-                    height: 600,
-                    overflow: 'hidden'
+                    background: 'linear-gradient(135deg, #ffffff 0%, #f5f7ff 100%)'
                   }}
                 >
-                  <Line
-                    data={{
-                      labels: result.positions.map(pos => pos.toFixed(2)),
-                      datasets: [{
-                        label: 'Температура (°C)',
-                        data: result.temperatures,
-                        borderColor: '#3f51b5',
-                        backgroundColor: 'rgba(63, 81, 181, 0.1)',
-                        tension: 0.4
-                      }]
-                    }}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        title: {
-                          display: true,
-                          text: 'Распределение температуры'
-                        }
-                      },
-                      scales: {
-                        x: {
-                          title: {
-                            display: true,
-                            text: 'Координата (м)'
-                          }
-                        },
-                        y: {
-                          title: {
-                            display: true,
-                            text: 'Температура (°C)'
-                          }
-                        }
-                      }
-                    }}
-                  />
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={4}>
+                      <Typography variant="body1">
+                        <strong style={{ color: '#3f51b5' }}>Производительность:</strong> {result.productivity.toFixed(2)} кг/ч
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Typography variant="body1">
+                        <strong style={{ color: '#3f51b5' }}>Конечная температура:</strong> {result.finalTemperature.toFixed(2)} °C
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Typography variant="body1">
+                        <strong style={{ color: '#3f51b5' }}>Конечная вязкость:</strong> {result.finalViscosity.toFixed(1)} Па·с
+                      </Typography>
+                    </Grid>
+                  </Grid>
                 </Paper>
               </Grid>
               
-              <Grid item xs={12} md={6}>
+              <Grid container spacing={4} sx={{ mt: 2 }}>
+                <Grid item xs={12} md={6}>
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      p: 4,
+                      borderRadius: 2, 
+                      boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
+                      border: '1px solid rgba(63, 81, 181, 0.12)',
+                      height: 600,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {tempChartData && <Line options={tempChartOptions} data={tempChartData} />}
+                  </Paper>
+                  {result && (
+                    <Paper 
+                      elevation={0} 
+                      sx={{ 
+                        p: 4,
+                        mt: 3, 
+                        borderRadius: 2, 
+                        boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
+                        border: '1px solid rgba(63, 81, 181, 0.12)',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <Typography 
+                        variant="h6" 
+                        gutterBottom 
+                        sx={{ 
+                          fontSize: '1.2rem',
+                          fontWeight: 500,
+                          color: '#3f51b5',
+                          borderBottom: '1px solid rgba(63, 81, 181, 0.3)',
+                          pb: 1,
+                          mb: 2
+                        }}
+                      >
+                        Таблица температуры
+                      </Typography>
+                      <TableContainer sx={{ maxHeight: 400 }}>
+                        <Table 
+                          sx={{ 
+                            '& .MuiTableCell-root': { 
+                              borderBottom: '1px solid rgba(63, 81, 181, 0.1)',
+                              fontSize: '1rem',
+                              py: 1.5
+                            }
+                          }}
+                        >
+                          <TableHead>
+                            <TableRow sx={{ 
+                              '& .MuiTableCell-root': { 
+                                fontWeight: 600, 
+                                backgroundColor: 'rgba(63, 81, 181, 0.05)',
+                                fontSize: '1.1rem',
+                                whiteSpace: 'nowrap'
+                              } 
+                            }}>
+                              <TableCell>Координата по длине канала (м)</TableCell>
+                              <TableCell>Температура (°C)</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {prepareTableData(result.positions, result.temperatures, model.displayStep).map((row, index) => (
+                              <TableRow 
+                                key={`temp-${index}`}
+                                sx={{ 
+                                  '&:nth-of-type(odd)': { backgroundColor: 'rgba(63, 81, 181, 0.02)' },
+                                  '&:hover': { backgroundColor: 'rgba(63, 81, 181, 0.05)' }
+                                }}
+                              >
+                                <TableCell>{row.position.toFixed(3)}</TableCell>
+                                <TableCell>{row.value.toFixed(2)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </Paper>
+                  )}
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      p: 4,
+                      borderRadius: 2, 
+                      boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
+                      border: '1px solid rgba(63, 81, 181, 0.12)',
+                      height: 600,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {viscChartData && <Line options={viscChartOptions} data={viscChartData} />}
+                  </Paper>
+                  {result && (
+                    <Paper 
+                      elevation={0} 
+                      sx={{ 
+                        p: 4,
+                        mt: 3, 
+                        borderRadius: 2, 
+                        boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
+                        border: '1px solid rgba(63, 81, 181, 0.12)',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <Typography 
+                        variant="h6" 
+                        gutterBottom 
+                        sx={{ 
+                          fontSize: '1.2rem',
+                          fontWeight: 500,
+                          color: '#3f51b5',
+                          borderBottom: '1px solid rgba(63, 81, 181, 0.3)',
+                          pb: 1,
+                          mb: 2
+                        }}
+                      >
+                        Таблица вязкости
+                      </Typography>
+                      <TableContainer sx={{ maxHeight: 400 }}>
+                        <Table 
+                          sx={{ 
+                            '& .MuiTableCell-root': { 
+                              borderBottom: '1px solid rgba(63, 81, 181, 0.1)',
+                              fontSize: '1rem',
+                              py: 1.5
+                            }
+                          }}
+                        >
+                          <TableHead>
+                            <TableRow sx={{ 
+                              '& .MuiTableCell-root': { 
+                                fontWeight: 600, 
+                                backgroundColor: 'rgba(63, 81, 181, 0.05)',
+                                fontSize: '1.1rem',
+                                whiteSpace: 'nowrap'
+                              } 
+                            }}>
+                              <TableCell>Координата по длине канала (м)</TableCell>
+                              <TableCell>Вязкость (Па·с)</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {prepareTableData(result.positions, result.viscosities, model.displayStep).map((row, index) => (
+                              <TableRow 
+                                key={`visc-${index}`}
+                                sx={{ 
+                                  '&:nth-of-type(odd)': { backgroundColor: 'rgba(63, 81, 181, 0.02)' },
+                                  '&:hover': { backgroundColor: 'rgba(63, 81, 181, 0.05)' }
+                                }}
+                              >
+                                <TableCell>{row.position.toFixed(3)}</TableCell>
+                                <TableCell>{row.value.toFixed(1)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </Paper>
+                  )}
+                </Grid>
+              </Grid>
+              
+              <Grid item xs={12}>
                 <Paper 
                   elevation={0} 
                   sx={{ 
-                    p: 4,
+                    p: 3, 
+                    mt: 3, 
                     borderRadius: 2, 
                     boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
                     border: '1px solid rgba(63, 81, 181, 0.12)',
-                    height: 600,
-                    overflow: 'hidden'
+                    background: 'linear-gradient(135deg, #fbfcff 0%, #f5f7ff 100%)'
                   }}
                 >
-                  <Line
-                    data={{
-                      labels: result.positions.map(pos => pos.toFixed(2)),
-                      datasets: [{
-                        label: 'Вязкость (Па·с)',
-                        data: result.viscosities,
-                        borderColor: '#f50057',
-                        backgroundColor: 'rgba(245, 0, 87, 0.1)',
-                        tension: 0.4
-                      }]
+                  <Typography 
+                    variant="h6" 
+                    gutterBottom 
+                    sx={{ 
+                      fontWeight: 500, 
+                      color: '#3f51b5',
+                      borderBottom: '1px solid rgba(63, 81, 181, 0.3)',
+                      pb: 1,
+                      mb: 2
                     }}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        title: {
-                          display: true,
-                          text: 'Распределение вязкости'
-                        }
-                      },
-                      scales: {
-                        x: {
-                          title: {
-                            display: true,
-                            text: 'Координата (м)'
-                          }
-                        },
-                        y: {
-                          title: {
-                            display: true,
-                            text: 'Вязкость (Па·с)'
-                          }
-                        }
-                      }
-                    }}
-                  />
+                  >
+                    Производительность расчета
+                  </Typography>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={4}>
+                      <Typography variant="body1">
+                        <strong style={{ color: '#3f51b5' }}>Время расчета:</strong> {result.calculationTime.toFixed(2)} мс
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Typography variant="body1">
+                        <strong style={{ color: '#3f51b5' }}>Количество операций:</strong> {result.operationsCount.toLocaleString()}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Typography variant="body1">
+                        <strong style={{ color: '#3f51b5' }}>Использовано памяти:</strong> {formatMemorySize(result.memoryUsage)}
+                      </Typography>
+                    </Grid>
+                  </Grid>
                 </Paper>
               </Grid>
-            </Grid>
-
-            {/* Таблицы результатов */}
-            <Grid item xs={12}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Таблицы результатов
-                  </Typography>
-                  <TableContainer component={Paper} sx={tableStyles}>
-                    <Table stickyHeader>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Координата (м)</TableCell>
-                          <TableCell>Температура (°C)</TableCell>
-                          <TableCell>Вязкость (Па·с)</TableCell>
-                          <TableCell>Скорость (м/с)</TableCell>
-                          <TableCell>Давление (Па)</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {result && prepareTableData(result, model.displayStep).map((row, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{row.position.toFixed(3)}</TableCell>
-                            <TableCell>{row.temperature.toFixed(2)}</TableCell>
-                            <TableCell>{row.viscosity.toFixed(1)}</TableCell>
-                            <TableCell>{row.velocity.toFixed(3)}</TableCell>
-                            <TableCell>{row.pressure.toFixed(0)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </CardContent>
-              </Card>
-            </Grid>
-          </>
-        )}
-      </Grid>
+            </>
+          )}
+        </Grid>
+      </Box>
     </Box>
   );
 };
