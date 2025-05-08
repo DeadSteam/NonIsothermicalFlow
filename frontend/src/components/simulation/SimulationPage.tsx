@@ -111,6 +111,11 @@ const prepareTableData = (positions: number[], values: number[], displayStep: nu
   return result;
 };
 
+// Добавляем интерфейс для ошибок полей
+interface FieldErrors {
+  [key: string]: string;
+}
+
 const SimulationPage: React.FC = () => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
@@ -121,6 +126,7 @@ const SimulationPage: React.FC = () => {
     renderTime: number;
     memoryUsage: number;
   }>({ renderTime: 0, memoryUsage: 0 });
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   
   // Параметры модели расчетов
   const [model, setModel] = useState<MathModel>({
@@ -212,6 +218,17 @@ const SimulationPage: React.FC = () => {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     
+    // Функция для обновления ошибок полей
+    const updateFieldError = (fieldName: string, errorMessage: string | null) => {
+      setFieldErrors(prev => {
+        if (errorMessage === null) {
+          const { [fieldName]: _, ...rest } = prev;
+          return rest;
+        }
+        return { ...prev, [fieldName]: errorMessage };
+      });
+    };
+    
     // Для количества пропусков шагов разрешаем только целые неотрицательные числа
     if (name === 'displayStep') {
       if (value === '') {
@@ -219,11 +236,15 @@ const SimulationPage: React.FC = () => {
           ...prevModel,
           [name]: 0
         }));
+        updateFieldError(name, null);
+        setError(null);
         return;
       }
       
       const numValue = Number(value);
       if (!Number.isInteger(numValue) || numValue < 0) {
+        updateFieldError(name, 'Должно быть целым неотрицательным числом');
+        setError('Количество пропусков шагов должно быть целым неотрицательным числом');
         return;
       }
       
@@ -231,6 +252,8 @@ const SimulationPage: React.FC = () => {
         ...prevModel,
         [name]: numValue
       }));
+      updateFieldError(name, null);
+      setError(null);
       return;
     }
     
@@ -240,6 +263,8 @@ const SimulationPage: React.FC = () => {
         ...prevModel,
         [name]: value
       }));
+      updateFieldError(name, null);
+      setError(null);
       return;
     }
 
@@ -248,6 +273,8 @@ const SimulationPage: React.FC = () => {
     
     // Проверяем, что это допустимое положительное число или десятичная дробь
     if (!/^\d*\.?\d*$/.test(normalizedValue) || Number(normalizedValue) < 0) {
+      updateFieldError(name, 'Должно быть положительным числом');
+      setError('Значение должно быть положительным числом');
       return;
     }
 
@@ -255,10 +282,66 @@ const SimulationPage: React.FC = () => {
       ...prevModel,
       [name]: normalizedValue
     }));
+    updateFieldError(name, null);
+    setError(null);
   };
 
-  // Обработчик запуска симуляции
+  // Функция валидации поля
+  const validateField = (name: string, value: any): string | null => {
+    // Преобразуем значение в строку для проверки
+    const strValue = String(value);
+    
+    // Если поле пустое
+    if (strValue === '' || strValue === '.' || strValue === ',') {
+      return 'Поле обязательно для заполнения';
+    }
+
+    // Для поля количества пропусков шагов
+    if (name === 'displayStep') {
+      const numValue = Number(strValue);
+      if (!Number.isInteger(numValue) || numValue < 0) {
+        return 'Должно быть целым неотрицательным числом';
+      }
+      return null;
+    }
+
+    // Для всех остальных числовых полей
+    const normalizedValue = strValue.replace(',', '.');
+    if (!/^\d*\.?\d*$/.test(normalizedValue) || Number(normalizedValue) <= 0) {
+      return 'Должно быть положительным числом';
+    }
+
+    return null;
+  };
+
+  // Функция валидации всех полей
+  const validateAllFields = (): boolean => {
+    const newFieldErrors: FieldErrors = {};
+    let hasErrors = false;
+
+    // Проверяем все поля модели
+    Object.entries(model).forEach(([fieldName, value]) => {
+      const error = validateField(fieldName, value);
+      if (error) {
+        newFieldErrors[fieldName] = error;
+        hasErrors = true;
+      }
+    });
+
+    setFieldErrors(newFieldErrors);
+    if (hasErrors) {
+      setError('Пожалуйста, исправьте ошибки в полях ввода');
+    }
+    return !hasErrors;
+  };
+
+  // Обновляем обработчик запуска симуляции
   const handleRunSimulation = async () => {
+    // Сначала проверяем все поля
+    if (!validateAllFields()) {
+      return;
+    }
+
     setLoading(true);
     setError(null);
     
@@ -441,6 +524,29 @@ const SimulationPage: React.FC = () => {
       setError('Ошибка при загрузке материала');
     }
   };
+
+  // Модифицируем стили для текстовых полей с учетом ошибок
+  const getTextFieldStyles = (fieldName: string) => ({
+    ...textFieldStyles,
+    '& .MuiOutlinedInput-root': {
+      ...textFieldStyles['& .MuiOutlinedInput-root'],
+      '& fieldset': {
+        borderColor: fieldErrors[fieldName] ? '#d32f2f' : 'rgba(0, 0, 0, 0.23)',
+      },
+      '&:hover fieldset': {
+        borderColor: fieldErrors[fieldName] ? '#d32f2f' : '#3f51b5',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: fieldErrors[fieldName] ? '#d32f2f' : '#3f51b5',
+      },
+    },
+    '& .MuiInputLabel-root': {
+      color: fieldErrors[fieldName] ? '#d32f2f' : 'rgba(0, 0, 0, 0.6)',
+      '&.Mui-focused': {
+        color: fieldErrors[fieldName] ? '#d32f2f' : '#3f51b5',
+      },
+    },
+  });
 
   // Опции для графиков
   const tempChartOptions = {
@@ -755,7 +861,9 @@ const SimulationPage: React.FC = () => {
                       onChange={handleInputChange}
                       margin="normal"
                       variant="outlined"
-                      sx={textFieldStyles}
+                      error={!!fieldErrors.coverSpeed}
+                      helperText={fieldErrors.coverSpeed}
+                      sx={getTextFieldStyles('coverSpeed')}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -767,7 +875,9 @@ const SimulationPage: React.FC = () => {
                       onChange={handleInputChange}
                       margin="normal"
                       variant="outlined"
-                      sx={textFieldStyles}
+                      error={!!fieldErrors.coverTemp}
+                      helperText={fieldErrors.coverTemp}
+                      sx={getTextFieldStyles('coverTemp')}
                     />
                   </Grid>
                 </Grid>
@@ -817,7 +927,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.width}
+                        helperText={fieldErrors.width}
+                        sx={getTextFieldStyles('width')}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
@@ -829,7 +941,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.depth}
+                        helperText={fieldErrors.depth}
+                        sx={getTextFieldStyles('depth')}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
@@ -841,7 +955,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.length}
+                        helperText={fieldErrors.length}
+                        sx={getTextFieldStyles('length')}
                       />
                     </Grid>
                   </Grid>
@@ -911,7 +1027,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.density}
+                        helperText={fieldErrors.density}
+                        sx={getTextFieldStyles('density')}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
@@ -923,7 +1041,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.heatCapacity}
+                        helperText={fieldErrors.heatCapacity}
+                        sx={getTextFieldStyles('heatCapacity')}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
@@ -935,7 +1055,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.glassTransitionTemp}
+                        helperText={fieldErrors.glassTransitionTemp}
+                        sx={getTextFieldStyles('glassTransitionTemp')}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
@@ -947,7 +1069,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.meltingTemp}
+                        helperText={fieldErrors.meltingTemp}
+                        sx={getTextFieldStyles('meltingTemp')}
                       />
                     </Grid>
                   </Grid>
@@ -998,7 +1122,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.mu0}
+                        helperText={fieldErrors.mu0}
+                        sx={getTextFieldStyles('mu0')}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
@@ -1010,7 +1136,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.firstConstantVLF}
+                        helperText={fieldErrors.firstConstantVLF}
+                        sx={getTextFieldStyles('firstConstantVLF')}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
@@ -1022,7 +1150,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.secondConstantVLF}
+                        helperText={fieldErrors.secondConstantVLF}
+                        sx={getTextFieldStyles('secondConstantVLF')}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
@@ -1034,7 +1164,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.castingTemp}
+                        helperText={fieldErrors.castingTemp}
+                        sx={getTextFieldStyles('castingTemp')}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
@@ -1046,7 +1178,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.flowIndex}
+                        helperText={fieldErrors.flowIndex}
+                        sx={getTextFieldStyles('flowIndex')}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
@@ -1058,7 +1192,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.heatTransfer}
+                        helperText={fieldErrors.heatTransfer}
+                        sx={getTextFieldStyles('heatTransfer')}
                       />
                     </Grid>
                   </Grid>
@@ -1090,7 +1226,9 @@ const SimulationPage: React.FC = () => {
                         onChange={handleInputChange}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        error={!!fieldErrors.step}
+                        helperText={fieldErrors.step}
+                        sx={getTextFieldStyles('step')}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -1100,12 +1238,13 @@ const SimulationPage: React.FC = () => {
                         name="displayStep"
                         type="number"
                         inputProps={{ min: 0, step: 1 }}
-                        helperText="0 - без пропусков, 1 - пропуск одной строки, и т.д."
                         value={model.displayStep}
                         onChange={handleInputChange}
+                        error={!!fieldErrors.displayStep}
+                        helperText={fieldErrors.displayStep || '0 - без пропусков, 1 - пропуск одной строки, и т.д.'}
                         margin="normal"
                         variant="outlined"
-                        sx={textFieldStyles}
+                        sx={getTextFieldStyles('displayStep')}
                       />
                     </Grid>
                   </Grid>
