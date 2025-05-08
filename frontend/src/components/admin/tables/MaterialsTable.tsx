@@ -136,15 +136,15 @@ const MaterialsTable: React.FC = () => {
     try {
       if (isEdit && formData.id) {
         const updateData = {
-          name: formData.name,
+                name: formData.name,
           materialType: formData.materialType,
           propertyValues: formData.propertyValues,
           coefficientValues: formData.coefficientValues
         };
         await updateMaterial(formData.id, updateData);
-      } else {
+    } else {
         const createData = {
-          name: formData.name,
+        name: formData.name,
           materialType: formData.materialType,
           propertyValues: formData.propertyValues,
           coefficientValues: formData.coefficientValues
@@ -209,37 +209,37 @@ const MaterialsTable: React.FC = () => {
           <CircularProgress />
         </Box>
       ) : (
-        <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }}>
-            <TableHead>
-              <TableRow>
+      <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }}>
+          <TableHead>
+            <TableRow>
                 <TableCell>Название</TableCell>
                 <TableCell>Тип материала</TableCell>
                 <TableCell>Количество свойств</TableCell>
                 <TableCell>Количество коэффициентов</TableCell>
-                <TableCell align="right">Действия</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {materials.map((material) => (
-                <TableRow key={material.id}>
-                  <TableCell>{material.name}</TableCell>
+              <TableCell align="right">Действия</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {materials.map((material) => (
+              <TableRow key={material.id}>
+                <TableCell>{material.name}</TableCell>
                   <TableCell>{material.materialType}</TableCell>
                   <TableCell>{material.propertyValues?.length || 0}</TableCell>
                   <TableCell>{material.coefficientValues?.length || 0}</TableCell>
-                  <TableCell align="right">
+                <TableCell align="right">
                     <IconButton onClick={() => handleEdit(material)} color="primary">
-                      <EditIcon />
-                    </IconButton>
+                    <EditIcon />
+                  </IconButton>
                     <IconButton onClick={() => handleDelete(material.id)} color="error">
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
       )}
 
       <Dialog open={open} onClose={handleClose}>

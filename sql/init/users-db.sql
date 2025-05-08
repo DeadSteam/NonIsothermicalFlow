@@ -23,17 +23,20 @@ CREATE INDEX idx_users_username ON users (username);
 CREATE INDEX idx_users_role_id ON users (role_id);
 
 -- Вставка базовых ролей
-INSERT INTO roles (id, name, created_at) 
-VALUES 
-    ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'ADMIN', CURRENT_TIMESTAMP),
-    ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'USER', CURRENT_TIMESTAMP);
+-- Создание ролей
+-- Создание ролей
+INSERT INTO roles (id, name) VALUES
+                                 ('1b3c2a4d-5e6f-4a8b-9c0d-1e2f3a4b5c6d', 'ADMIN'),
+                                 ('2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f', 'USER')
+ON CONFLICT (id) DO NOTHING;
 
--- Вставка тестового администратора (пароль: admin)
+-- Создание администратора (пароль: admin123)
 INSERT INTO users (id, username, password_hash, role_id, created_at)
 VALUES (
-    'f47ac10b-58cc-4372-a567-0e02b2c3d479', 
-    'admin', 
-    '$2a$10$hKDVYxLefVHV/vtuPhWD3OigtRyOykRLDdUAp80Z1crSoS1lFqaFS', 
-    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    CURRENT_TIMESTAMP
-);
+           '3d4e5f6a-7b8c-9d0e-1f2a-3b4c5d6e7f8a',
+           'admin',
+           '$2a$10$rYTJWZNXhwqKxE0KxMKOyeB9g3h1qRxB.LqO1yoQGUwAHQGp.ZKdG',
+           '1b3c2a4d-5e6f-4a8b-9c0d-1e2f3a4b5c6d',
+           CURRENT_TIMESTAMP
+       )
+ON CONFLICT (username) DO NOTHING;
