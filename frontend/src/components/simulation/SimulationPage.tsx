@@ -89,50 +89,26 @@ interface TableDataItem {
   value: number;
 }
 
-const prepareTableData = (
-  positions: number[], 
-  data: number[], 
-  displayStep: number
-): TableDataItem[] => {
-  if (!positions.length || !data.length) return [];
+const prepareTableData = (positions: number[], values: number[], displayStep: number) => {
+  const result = [];
+  // Если displayStep равен 0, показываем все точки
+  const step = displayStep === 0 ? 1 : displayStep + 1;
   
-  const tableData: TableDataItem[] = [];
-  const maxPos = positions[positions.length - 1];
-  
-  // Первая позиция всегда включается
-  tableData.push({
-    position: positions[0],
-    value: data[0]
-  });
-  
-  // Добавляем позиции с шагом displayStep
-  let currentStep = displayStep;
-  while (currentStep < maxPos) {
-    // Найдем ближайшую позицию к текущему шагу
-    const closestIndex = positions.findIndex(pos => pos >= currentStep);
-    
-    if (closestIndex !== -1) {
-      tableData.push({
-        position: positions[closestIndex],
-        value: data[closestIndex]
-      });
-    }
-    
-    currentStep += displayStep;
-  }
-  
-  // Последняя позиция всегда включается, если она еще не добавлена
-  const lastPos = positions[positions.length - 1];
-  const lastValue = data[data.length - 1];
-  
-  if (tableData[tableData.length - 1]?.position !== lastPos) {
-    tableData.push({
-      position: lastPos,
-      value: lastValue
+  for (let i = 0; i < positions.length; i += step) {
+    result.push({
+      position: positions[i],
+      value: values[i]
     });
   }
   
-  return tableData;
+  // Всегда добавляем последнюю точку, если она еще не добавлена
+  if (positions.length > 0 && result[result.length - 1]?.position !== positions[positions.length - 1]) {
+    result.push({
+      position: positions[positions.length - 1],
+      value: values[values.length - 1]
+    });
+  }
+  return result;
 };
 
 const SimulationPage: React.FC = () => {
@@ -141,26 +117,30 @@ const SimulationPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ResultModel | null>(null);
+  const [clientPerformance, setClientPerformance] = useState<{
+    renderTime: number;
+    memoryUsage: number;
+  }>({ renderTime: 0, memoryUsage: 0 });
   
   // Параметры модели расчетов
   const [model, setModel] = useState<MathModel>({
     width: 0.2,
     depth: 0.01,
     length: 8.0,
-    density: 1200,
-    heatCapacity: 1400,
-    glassTransitionTemp: 150,
-    meltingTemp: 230,
+    density: 0,
+    heatCapacity: 0,
+    glassTransitionTemp: 0,
+    meltingTemp: 0,
     coverSpeed: 0.9,
     coverTemp: 280,
-    mu0: 8390,
-    firstConstantVLF: 17.44,
-    secondConstantVLF: 51.6,
-    castingTemp: 280,
-    flowIndex: 0.64,
-    heatTransfer: 350,
+    mu0: 0,
+    firstConstantVLF: 0,
+    secondConstantVLF: 0,
+    castingTemp: 0,
+    flowIndex: 0,
+    heatTransfer: 0,
     step: 0.01,
-    displayStep: 0.5
+    displayStep: 0
   });
 
   // Загрузка материалов при загрузке компонента
@@ -169,6 +149,56 @@ const SimulationPage: React.FC = () => {
       try {
         const data = await getAllMaterials();
         setMaterials(data);
+        
+        // Автоматический выбор поликарбоната
+        const polycarbonate = data.find(m => m.name.toLowerCase().includes('поликарбонат'));
+        if (polycarbonate) {
+          const material = await getMaterialById(polycarbonate.id);
+          setSelectedMaterial(material);
+          
+          // Создаем новую модель на основе текущей
+          const newModel = { ...model };
+          
+          // Применяем свойства материала
+          if (material.propertyValues) {
+            material.propertyValues.forEach(pv => {
+              const propName = pv.property.propertyName.toLowerCase();
+              
+              if (propName.includes('плотность')) {
+                newModel.density = pv.propertyValue;
+              } else if (propName.includes('теплоемкость')) {
+                newModel.heatCapacity = pv.propertyValue;
+              } else if (propName.includes('стеклования')) {
+                newModel.glassTransitionTemp = pv.propertyValue;
+              } else if (propName.includes('плавления')) {
+                newModel.meltingTemp = pv.propertyValue;
+              }
+            });
+          }
+
+          // Применяем коэффициенты материала
+          if (material.coefficientValues) {
+            material.coefficientValues.forEach(cv => {
+              const coefName = cv.coefficient.coefficientName.toLowerCase();
+              
+              if (coefName.includes('консистенции')) {
+                newModel.mu0 = cv.coefficientValue;
+              } else if (coefName.includes('первая') && coefName.includes('влф')) {
+                newModel.firstConstantVLF = cv.coefficientValue;
+              } else if (coefName.includes('вторая') && coefName.includes('влф')) {
+                newModel.secondConstantVLF = cv.coefficientValue;
+              } else if (coefName.includes('течения')) {
+                newModel.flowIndex = cv.coefficientValue;
+              } else if (coefName.includes('теплоотдачи')) {
+                newModel.heatTransfer = cv.coefficientValue;
+              } else if (coefName.includes('приведения')) {
+                newModel.castingTemp = cv.coefficientValue;
+              }
+            });
+          }
+
+          setModel(newModel);
+        }
       } catch (err) {
         console.error('Ошибка при загрузке материалов:', err);
         setError('Ошибка при загрузке материалов');
@@ -179,31 +209,52 @@ const SimulationPage: React.FC = () => {
   }, []);
 
   // Обработчик изменения полей ввода
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
     
-    // Разрешаем пустое поле
-    if (value === '') {
-      setModel({
-        ...model,
+    // Для количества пропусков шагов разрешаем только целые неотрицательные числа
+    if (name === 'displayStep') {
+      if (value === '') {
+        setModel(prevModel => ({
+          ...prevModel,
+          [name]: 0
+        }));
+        return;
+      }
+      
+      const numValue = Number(value);
+      if (!Number.isInteger(numValue) || numValue < 0) {
+        return;
+      }
+      
+      setModel(prevModel => ({
+        ...prevModel,
+        [name]: numValue
+      }));
+      return;
+    }
+    
+    // Для остальных полей разрешаем положительные числа и десятичные дроби
+    if (value === '' || value === '.' || value === ',') {
+      setModel(prevModel => ({
+        ...prevModel,
         [name]: value
-      });
+      }));
       return;
     }
 
-    // Проверяем, является ли введенное значение допустимым числом
-    // Разрешаем: цифры, одну точку или запятую, минус в начале
-    const isValidInput = /^-?\d*[.,]?\d*$/.test(value);
+    // Заменяем запятую на точку для корректного преобразования
+    const normalizedValue = value.replace(',', '.');
     
-    if (!isValidInput) {
-      return; // Игнорируем недопустимый ввод
+    // Проверяем, что это допустимое положительное число или десятичная дробь
+    if (!/^\d*\.?\d*$/.test(normalizedValue) || Number(normalizedValue) < 0) {
+      return;
     }
 
-    // Сохраняем значение как есть, с запятой
-    setModel({
-      ...model,
-      [name]: value
-    });
+    setModel(prevModel => ({
+      ...prevModel,
+      [name]: normalizedValue
+    }));
   };
 
   // Обработчик запуска симуляции
@@ -212,26 +263,26 @@ const SimulationPage: React.FC = () => {
     setError(null);
     
     try {
-      // Преобразуем все числовые значения, заменяя запятые на точки
+      // Преобразуем все числовые значения
       const normalizedModel: MathModel = {
         ...model,
-        width: parseFloat(model.width.toString().replace(',', '.')),
-        depth: parseFloat(model.depth.toString().replace(',', '.')),
-        length: parseFloat(model.length.toString().replace(',', '.')),
-        density: parseFloat(model.density.toString().replace(',', '.')),
-        heatCapacity: parseFloat(model.heatCapacity.toString().replace(',', '.')),
-        glassTransitionTemp: parseFloat(model.glassTransitionTemp.toString().replace(',', '.')),
-        meltingTemp: parseFloat(model.meltingTemp.toString().replace(',', '.')),
-        coverSpeed: parseFloat(model.coverSpeed.toString().replace(',', '.')),
-        coverTemp: parseFloat(model.coverTemp.toString().replace(',', '.')),
-        mu0: parseFloat(model.mu0.toString().replace(',', '.')),
-        firstConstantVLF: parseFloat(model.firstConstantVLF.toString().replace(',', '.')),
-        secondConstantVLF: parseFloat(model.secondConstantVLF.toString().replace(',', '.')),
-        castingTemp: parseFloat(model.castingTemp.toString().replace(',', '.')),
-        flowIndex: parseFloat(model.flowIndex.toString().replace(',', '.')),
-        heatTransfer: parseFloat(model.heatTransfer.toString().replace(',', '.')),
-        step: parseFloat(model.step.toString().replace(',', '.')),
-        displayStep: parseFloat(model.displayStep.toString().replace(',', '.'))
+        width: Number(String(model.width).replace(',', '.')),
+        depth: Number(String(model.depth).replace(',', '.')),
+        length: Number(String(model.length).replace(',', '.')),
+        density: Number(String(model.density).replace(',', '.')),
+        heatCapacity: Number(String(model.heatCapacity).replace(',', '.')),
+        glassTransitionTemp: Number(String(model.glassTransitionTemp).replace(',', '.')),
+        meltingTemp: Number(String(model.meltingTemp).replace(',', '.')),
+        coverSpeed: Number(String(model.coverSpeed).replace(',', '.')),
+        coverTemp: Number(String(model.coverTemp).replace(',', '.')),
+        mu0: Number(String(model.mu0).replace(',', '.')),
+        firstConstantVLF: Number(String(model.firstConstantVLF).replace(',', '.')),
+        secondConstantVLF: Number(String(model.secondConstantVLF).replace(',', '.')),
+        castingTemp: Number(String(model.castingTemp).replace(',', '.')),
+        flowIndex: Number(String(model.flowIndex).replace(',', '.')),
+        heatTransfer: Number(String(model.heatTransfer).replace(',', '.')),
+        step: Number(String(model.step).replace(',', '.')),
+        displayStep: Number(model.displayStep)
       };
       
       const result = await runSimulation(normalizedModel);
@@ -244,11 +295,52 @@ const SimulationPage: React.FC = () => {
     }
   };
 
+  // Функция для форматирования размера памяти в МБ
+  const formatMemoryToMB = (bytes: number): number => {
+    return Number((bytes / (1024 * 1024)).toFixed(2));
+  };
+
   // Экспорт результатов в Excel
   const handleExportToExcel = () => {
-    if (!result) return;
+    if (!result || !selectedMaterial) return;
 
     const workbook = XLSX.utils.book_new();
+    
+    // Подготовка данных для листа с исходными данными
+    const inputData = [
+      { 'Параметр': 'Тип материала', 'Значение': `${selectedMaterial.name} (${selectedMaterial.materialType})` },
+      { 'Параметр': '', 'Значение': '' },
+      { 'Параметр': 'Варьируемые (режимные) параметры процесса', 'Значение': '' },
+      { 'Параметр': 'Скорость крышки (м/с)', 'Значение': model.coverSpeed },
+      { 'Параметр': 'Температура крышки (°C)', 'Значение': model.coverTemp },
+      { 'Параметр': '', 'Значение': '' },
+      { 'Параметр': 'Геометрические параметры канала', 'Значение': '' },
+      { 'Параметр': 'Ширина канала (м)', 'Значение': model.width },
+      { 'Параметр': 'Глубина канала (м)', 'Значение': model.depth },
+      { 'Параметр': 'Длина канала (м)', 'Значение': model.length },
+      { 'Параметр': '', 'Значение': '' },
+      { 'Параметр': 'Параметры свойств материала', 'Значение': '' },
+      { 'Параметр': 'Плотность (кг/м³)', 'Значение': model.density },
+      { 'Параметр': 'Удельная теплоемкость (Дж/(кг·°C))', 'Значение': model.heatCapacity },
+      { 'Параметр': 'Температура стеклования (°С)', 'Значение': model.glassTransitionTemp },
+      { 'Параметр': 'Температура плавления (°C)', 'Значение': model.meltingTemp },
+      { 'Параметр': '', 'Значение': '' },
+      { 'Параметр': 'Эмпирические коэффициенты модели', 'Значение': '' },
+      { 'Параметр': 'Коэффициент консистенции (Па·с^n)', 'Значение': model.mu0 },
+      { 'Параметр': 'Первая константа ВЛФ', 'Значение': model.firstConstantVLF },
+      { 'Параметр': 'Вторая константа ВЛФ (°С)', 'Значение': model.secondConstantVLF },
+      { 'Параметр': 'Температура приведения (°C)', 'Значение': model.castingTemp },
+      { 'Параметр': 'Индекс течения', 'Значение': model.flowIndex },
+      { 'Параметр': 'Коэффициент теплоотдачи (Вт/(м²·°C))', 'Значение': model.heatTransfer },
+      { 'Параметр': '', 'Значение': '' },
+      { 'Параметр': 'Параметры метода решения', 'Значение': '' },
+      { 'Параметр': 'Шаг расчета (м)', 'Значение': model.step },
+      { 'Параметр': 'Количество пропусков шагов', 'Значение': model.displayStep }
+    ];
+
+    // Создание листа с исходными данными
+    const inputSheet = XLSX.utils.json_to_sheet(inputData);
+    XLSX.utils.book_append_sheet(workbook, inputSheet, 'Исходные данные');
     
     // Подготовка данных для таблицы результатов
     const tableData = result.positions.map((pos, index) => ({
@@ -262,14 +354,23 @@ const SimulationPage: React.FC = () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Результаты');
 
     // Подготовка данных для листа с показателями
+    const totalPerformance = getTotalPerformance();
     const performanceData = [
       { 'Показатель': 'Показатели экономичности', 'Значение': '' },
-      { 'Показатель': 'Производительность (кг/ч)', 'Значение': result.productivity },
-      { 'Показатель': 'Конечная температура (°C)', 'Значение': result.finalTemperature },
-      { 'Показатель': 'Конечная вязкость (Па·с)', 'Значение': result.finalViscosity },
-      { 'Показатель': 'Время расчета (мс)', 'Значение': result.calculationTime },
-      { 'Показатель': 'Количество операций', 'Значение': result.operationsCount },
-      { 'Показатель': 'Использованная память (байт)', 'Значение': result.memoryUsage }
+      { 'Показатель': 'Общая производительность (кг/ч)', 'Значение': result.productivity },
+      { 'Показатель': 'Общая температура продукта (°C)', 'Значение': result.finalTemperature },
+      { 'Показатель': 'Общая вязкость продукта (Па·с)', 'Значение': result.finalViscosity },
+      { 'Показатель': '', 'Значение': '' },
+      { 'Показатель': 'Показатели производительности', 'Значение': '' },
+      { 'Показатель': 'Общее время расчета (мс)', 'Значение': totalPerformance.totalTime.toFixed(2) },
+      { 'Показатель': 'Время расчета на сервере (мс)', 'Значение': result.calculationTime },
+      { 'Показатель': 'Время визуализации на клиенте (мс)', 'Значение': Number(clientPerformance.renderTime.toFixed(2)) },
+      { 'Показатель': '', 'Значение': '' },
+      { 'Показатель': 'Общая память (МБ)', 'Значение': formatMemoryToMB(totalPerformance.totalMemory) },
+      { 'Показатель': 'Память сервера (МБ)', 'Значение': formatMemoryToMB(result.memoryUsage) },
+      { 'Показатель': 'Память клиента (МБ)', 'Значение': formatMemoryToMB(clientPerformance.memoryUsage) },
+      { 'Показатель': '', 'Значение': '' },
+      { 'Показатель': 'Количество операций', 'Значение': result.operationsCount }
     ];
 
     // Создание листа с показателями
@@ -292,56 +393,53 @@ const SimulationPage: React.FC = () => {
 
       const material = await getMaterialById(materialId);
       setSelectedMaterial(material);
-      applyMaterialProperties(material);
+      
+      // Создаем новую модель на основе текущей
+      const newModel = { ...model };
+      
+      // Применяем свойства материала
+      if (material.propertyValues) {
+        material.propertyValues.forEach(pv => {
+          const propName = pv.property.propertyName.toLowerCase();
+          
+          if (propName.includes('плотность')) {
+            newModel.density = pv.propertyValue;
+          } else if (propName.includes('теплоемкость')) {
+            newModel.heatCapacity = pv.propertyValue;
+          } else if (propName.includes('стеклования')) {
+            newModel.glassTransitionTemp = pv.propertyValue;
+          } else if (propName.includes('плавления')) {
+            newModel.meltingTemp = pv.propertyValue;
+          }
+        });
+      }
+
+      // Применяем коэффициенты материала
+      if (material.coefficientValues) {
+        material.coefficientValues.forEach(cv => {
+          const coefName = cv.coefficient.coefficientName.toLowerCase();
+          
+          if (coefName.includes('консистенции')) {
+            newModel.mu0 = cv.coefficientValue;
+          } else if (coefName.includes('первая') && coefName.includes('влф')) {
+            newModel.firstConstantVLF = cv.coefficientValue;
+          } else if (coefName.includes('вторая') && coefName.includes('влф')) {
+            newModel.secondConstantVLF = cv.coefficientValue;
+          } else if (coefName.includes('течения')) {
+            newModel.flowIndex = cv.coefficientValue;
+          } else if (coefName.includes('теплоотдачи')) {
+            newModel.heatTransfer = cv.coefficientValue;
+          } else if (coefName.includes('приведения')) {
+            newModel.castingTemp = cv.coefficientValue;
+          }
+        });
+      }
+
+      setModel(newModel);
     } catch (err) {
       console.error('Ошибка при загрузке материала:', err);
       setError('Ошибка при загрузке материала');
     }
-  };
-
-  // Применение свойств выбранного материала к модели
-  const applyMaterialProperties = (material: Material) => {
-    // Создаем новую модель на основе текущей
-    const newModel = { ...model };
-    
-    // Ищем нужные свойства в материале и применяем их к модели
-    if (material.propertyValues) {
-      material.propertyValues.forEach(pv => {
-        const propName = pv.property.propertyName.toLowerCase();
-        
-        if (propName.includes('плотность')) {
-          newModel.density = pv.propertyValue;
-        } else if (propName.includes('теплоемкость')) {
-          newModel.heatCapacity = pv.propertyValue;
-        } else if (propName.includes('стеклования')) {
-          newModel.glassTransitionTemp = pv.propertyValue;
-        } else if (propName.includes('плавления')) {
-          newModel.meltingTemp = pv.propertyValue;
-        }
-      });
-    }
-
-    if (material.coefficientValues) {
-      material.coefficientValues.forEach(cv => {
-        const coefName = cv.coefficient.coefficientName.toLowerCase();
-        
-        if (coefName.includes('консистенции')) {
-          newModel.mu0 = cv.coefficientValue;
-        } else if (coefName.includes('первая') && coefName.includes('влф')) {
-          newModel.firstConstantVLF = cv.coefficientValue;
-        } else if (coefName.includes('вторая') && coefName.includes('влф')) {
-          newModel.secondConstantVLF = cv.coefficientValue;
-        } else if (coefName.includes('течения')) {
-          newModel.flowIndex = cv.coefficientValue;
-        } else if (coefName.includes('теплоотдачи')) {
-          newModel.heatTransfer = cv.coefficientValue;
-        } else if (coefName.includes('приведения')) {
-          newModel.castingTemp = cv.coefficientValue;
-        }
-      });
-    }
-
-    setModel(newModel);
   };
 
   // Опции для графиков
@@ -560,6 +658,39 @@ const SimulationPage: React.FC = () => {
     ],
   } : null;
 
+  // Функция для измерения производительности клиента
+  const measureClientPerformance = () => {
+    const startTime = performance.now();
+    
+    // Получаем текущее использование памяти
+    const memory = (performance as any).memory?.usedJSHeapSize || 0;
+    
+    // Устанавливаем таймер на конец отрисовки
+    requestAnimationFrame(() => {
+      const endTime = performance.now();
+      setClientPerformance({
+        renderTime: endTime - startTime,
+        memoryUsage: memory
+      });
+    });
+  };
+
+  // Вызываем измерение при получении результатов
+  useEffect(() => {
+    if (result) {
+      measureClientPerformance();
+    }
+  }, [result]);
+
+  // Функция для получения общих показателей производительности
+  const getTotalPerformance = () => {
+    if (!result) return { totalTime: 0, totalMemory: 0 };
+    return {
+      totalTime: result.calculationTime + clientPerformance.renderTime,
+      totalMemory: result.memoryUsage + clientPerformance.memoryUsage
+    };
+  };
+
   return (
     <Box 
       sx={{ 
@@ -567,18 +698,18 @@ const SimulationPage: React.FC = () => {
         px: { xs: 2, sm: 4, md: 6, lg: 8 },
         bgcolor: '#f5f7fa',
         minHeight: '100vh',
-        width: '100%',
+        width: '100vw',
         position: 'relative',
         left: '50%',
         transform: 'translateX(-50%)',
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%)'
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%)',
+        maxWidth: 'none'
       }}
     >
       <Box
         sx={{
-          maxWidth: '2400px',
-          margin: '0 auto',
           width: '100%',
+          margin: '0 auto',
         }}
       >
         <Typography 
@@ -609,7 +740,7 @@ const SimulationPage: React.FC = () => {
                   gutterBottom 
                   sx={{ fontWeight: 600, color: '#1a237e', mb: 3 }}
                 >
-                  Режимные параметры процесса
+                  Варьируемые (Режимные) параметры процесса
                 </Typography>
                 
                 {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 1 }}>{error}</Alert>}
@@ -768,7 +899,7 @@ const SimulationPage: React.FC = () => {
                       display: 'inline-block'
                     }}
                   >
-                    Параметры свойств объекта
+                    Параметры свойств материала
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6} md={3}>
@@ -967,6 +1098,9 @@ const SimulationPage: React.FC = () => {
                         fullWidth
                         label="Количество пропусков шагов при выводе в таблицу"
                         name="displayStep"
+                        type="number"
+                        inputProps={{ min: 0, step: 1 }}
+                        helperText="0 - без пропусков, 1 - пропуск одной строки, и т.д."
                         value={model.displayStep}
                         onChange={handleInputChange}
                         margin="normal"
@@ -1028,30 +1162,29 @@ const SimulationPage: React.FC = () => {
           {result && (
             <>
               <Grid item xs={12}>
-                <Divider sx={{ my: 4, opacity: 0.6 }} />
-                <Typography 
-                  variant="h5" 
-                  gutterBottom 
-                  sx={{ 
-                    mb: 3, 
-                    fontWeight: 600, 
-                    color: '#1a237e',
-                    textAlign: 'center'
-                  }}
-                >
-                  Показатели экономичности
-                </Typography>
                 <Paper 
                   elevation={0} 
                   sx={{ 
                     p: 3, 
-                    mb: 4, 
                     borderRadius: 2, 
                     boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
                     border: '1px solid rgba(63, 81, 181, 0.12)',
                     background: 'linear-gradient(135deg, #ffffff 0%, #f5f7ff 100%)'
                   }}
                 >
+                  <Typography 
+                    variant="h6" 
+                    gutterBottom 
+                    sx={{ 
+                      fontWeight: 500, 
+                      color: '#3f51b5',
+                      borderBottom: '1px solid rgba(63, 81, 181, 0.3)',
+                      pb: 1,
+                      mb: 2
+                    }}
+                  >
+                    Показатели экономичности
+                  </Typography>
                   <Grid container spacing={3}>
                     <Grid item xs={12} md={4}>
                       <Typography variant="body1">
@@ -1060,192 +1193,124 @@ const SimulationPage: React.FC = () => {
                     </Grid>
                     <Grid item xs={12} md={4}>
                       <Typography variant="body1">
-                        <strong style={{ color: '#3f51b5' }}>Конечная температура:</strong> {result.finalTemperature.toFixed(2)} °C
+                        <strong style={{ color: '#3f51b5' }}>Температура продукта:</strong> {result.finalTemperature.toFixed(2)} °C
                       </Typography>
                     </Grid>
                     <Grid item xs={12} md={4}>
                       <Typography variant="body1">
-                        <strong style={{ color: '#3f51b5' }}>Конечная вязкость:</strong> {result.finalViscosity.toFixed(1)} Па·с
+                        <strong style={{ color: '#3f51b5' }}>Вязкость продукта:</strong> {result.finalViscosity.toFixed(1)} Па·с
                       </Typography>
                     </Grid>
                   </Grid>
                 </Paper>
               </Grid>
-              
-              <Grid container spacing={4} sx={{ mt: 2 }}>
-                <Grid item xs={12} md={6}>
-                  <Paper 
-                    elevation={0} 
-                    sx={{ 
-                      p: 4,
-                      borderRadius: 2, 
-                      boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
-                      border: '1px solid rgba(63, 81, 181, 0.12)',
-                      height: 600,
-                      overflow: 'hidden'
-                    }}
-                  >
-                    {tempChartData && <Line options={tempChartOptions} data={tempChartData} />}
-                  </Paper>
-                  {result && (
-                    <Paper 
-                      elevation={0} 
-                      sx={{ 
-                        p: 4,
-                        mt: 3, 
-                        borderRadius: 2, 
-                        boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
-                        border: '1px solid rgba(63, 81, 181, 0.12)',
-                        overflow: 'hidden'
-                      }}
-                    >
-                      <Typography 
-                        variant="h6" 
-                        gutterBottom 
-                        sx={{ 
-                          fontSize: '1.2rem',
-                          fontWeight: 500,
-                          color: '#3f51b5',
-                          borderBottom: '1px solid rgba(63, 81, 181, 0.3)',
-                          pb: 1,
-                          mb: 2
-                        }}
-                      >
-                        Таблица температуры
-                      </Typography>
-                      <TableContainer sx={{ maxHeight: 400 }}>
-                        <Table 
-                          sx={{ 
-                            '& .MuiTableCell-root': { 
-                              borderBottom: '1px solid rgba(63, 81, 181, 0.1)',
-                              fontSize: '1rem',
-                              py: 1.5
-                            }
-                          }}
-                        >
-                          <TableHead>
-                            <TableRow sx={{ 
-                              '& .MuiTableCell-root': { 
-                                fontWeight: 600, 
-                                backgroundColor: 'rgba(63, 81, 181, 0.05)',
-                                fontSize: '1.1rem',
-                                whiteSpace: 'nowrap'
-                              } 
-                            }}>
-                              <TableCell>Координата по длине канала (м)</TableCell>
-                              <TableCell>Температура (°C)</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {prepareTableData(result.positions, result.temperatures, model.displayStep).map((row, index) => (
-                              <TableRow 
-                                key={`temp-${index}`}
-                                sx={{ 
-                                  '&:nth-of-type(odd)': { backgroundColor: 'rgba(63, 81, 181, 0.02)' },
-                                  '&:hover': { backgroundColor: 'rgba(63, 81, 181, 0.05)' }
-                                }}
-                              >
-                                <TableCell>{row.position.toFixed(3)}</TableCell>
-                                <TableCell>{row.value.toFixed(2)}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    </Paper>
-                  )}
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Paper 
-                    elevation={0} 
-                    sx={{ 
-                      p: 4,
-                      borderRadius: 2, 
-                      boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
-                      border: '1px solid rgba(63, 81, 181, 0.12)',
-                      height: 600,
-                      overflow: 'hidden'
-                    }}
-                  >
-                    {viscChartData && <Line options={viscChartOptions} data={viscChartData} />}
-                  </Paper>
-                  {result && (
-                    <Paper 
-                      elevation={0} 
-                      sx={{ 
-                        p: 4,
-                        mt: 3, 
-                        borderRadius: 2, 
-                        boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
-                        border: '1px solid rgba(63, 81, 181, 0.12)',
-                        overflow: 'hidden'
-                      }}
-                    >
-                      <Typography 
-                        variant="h6" 
-                        gutterBottom 
-                        sx={{ 
-                          fontSize: '1.2rem',
-                          fontWeight: 500,
-                          color: '#3f51b5',
-                          borderBottom: '1px solid rgba(63, 81, 181, 0.3)',
-                          pb: 1,
-                          mb: 2
-                        }}
-                      >
-                        Таблица вязкости
-                      </Typography>
-                      <TableContainer sx={{ maxHeight: 400 }}>
-                        <Table 
-                          sx={{ 
-                            '& .MuiTableCell-root': { 
-                              borderBottom: '1px solid rgba(63, 81, 181, 0.1)',
-                              fontSize: '1rem',
-                              py: 1.5
-                            }
-                          }}
-                        >
-                          <TableHead>
-                            <TableRow sx={{ 
-                              '& .MuiTableCell-root': { 
-                                fontWeight: 600, 
-                                backgroundColor: 'rgba(63, 81, 181, 0.05)',
-                                fontSize: '1.1rem',
-                                whiteSpace: 'nowrap'
-                              } 
-                            }}>
-                              <TableCell>Координата по длине канала (м)</TableCell>
-                              <TableCell>Вязкость (Па·с)</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {prepareTableData(result.positions, result.viscosities, model.displayStep).map((row, index) => (
-                              <TableRow 
-                                key={`visc-${index}`}
-                                sx={{ 
-                                  '&:nth-of-type(odd)': { backgroundColor: 'rgba(63, 81, 181, 0.02)' },
-                                  '&:hover': { backgroundColor: 'rgba(63, 81, 181, 0.05)' }
-                                }}
-                              >
-                                <TableCell>{row.position.toFixed(3)}</TableCell>
-                                <TableCell>{row.value.toFixed(1)}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    </Paper>
-                  )}
-                </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Paper 
+                  elevation={0} 
+                  sx={{ 
+                    p: 4,
+                    borderRadius: 2, 
+                    boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
+                    border: '1px solid rgba(63, 81, 181, 0.12)',
+                    height: 600,
+                    overflow: 'hidden'
+                  }}
+                >
+                  {tempChartData && <Line options={tempChartOptions} data={tempChartData} />}
+                </Paper>
               </Grid>
               
+              <Grid item xs={12} md={6}>
+                <Paper 
+                  elevation={0} 
+                  sx={{ 
+                    p: 4,
+                    borderRadius: 2, 
+                    boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
+                    border: '1px solid rgba(63, 81, 181, 0.12)',
+                    height: 600,
+                    overflow: 'hidden'
+                  }}
+                >
+                  {viscChartData && <Line options={viscChartOptions} data={viscChartData} />}
+                </Paper>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Paper 
+                  elevation={0} 
+                  sx={{ 
+                    p: 4,
+                    borderRadius: 2, 
+                    boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
+                    border: '1px solid rgba(63, 81, 181, 0.12)',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <Typography 
+                    variant="h6" 
+                    gutterBottom 
+                    sx={{ 
+                      fontSize: '1.2rem',
+                      fontWeight: 500,
+                      color: '#3f51b5',
+                      borderBottom: '1px solid rgba(63, 81, 181, 0.3)',
+                      pb: 1,
+                      mb: 2
+                    }}
+                  >
+                    Результаты расчета
+                  </Typography>
+                  <TableContainer sx={{ maxHeight: 600 }}>
+                    <Table 
+                      sx={{ 
+                        '& .MuiTableCell-root': { 
+                          borderBottom: '1px solid rgba(63, 81, 181, 0.1)',
+                          fontSize: '1rem',
+                          py: 1.5
+                        }
+                      }}
+                    >
+                      <TableHead>
+                        <TableRow sx={{ 
+                          '& .MuiTableCell-root': { 
+                            fontWeight: 600, 
+                            backgroundColor: 'rgba(63, 81, 181, 0.05)',
+                            fontSize: '1.1rem',
+                            whiteSpace: 'nowrap'
+                          } 
+                        }}>
+                          <TableCell>Координата по длине канала (м)</TableCell>
+                          <TableCell>Температура (°C)</TableCell>
+                          <TableCell>Вязкость (Па·с)</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {prepareTableData(result.positions, result.temperatures, model.displayStep).map((row, index) => (
+                          <TableRow 
+                            key={`data-${index}`}
+                            sx={{ 
+                              '&:nth-of-type(odd)': { backgroundColor: 'rgba(63, 81, 181, 0.02)' },
+                              '&:hover': { backgroundColor: 'rgba(63, 81, 181, 0.05)' }
+                            }}
+                          >
+                            <TableCell>{row.position.toFixed(3)}</TableCell>
+                            <TableCell>{result.temperatures[index].toFixed(2)}</TableCell>
+                            <TableCell>{result.viscosities[index].toFixed(1)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Paper>
+              </Grid>
+
               <Grid item xs={12}>
                 <Paper 
                   elevation={0} 
                   sx={{ 
                     p: 3, 
-                    mt: 3, 
                     borderRadius: 2, 
                     boxShadow: '0 8px 24px rgba(21,39,75,0.12)',
                     border: '1px solid rgba(63, 81, 181, 0.12)',
@@ -1263,22 +1328,30 @@ const SimulationPage: React.FC = () => {
                       mb: 2
                     }}
                   >
-                    Производительность расчета
+                    Показатели производительности
                   </Typography>
                   <Grid container spacing={3}>
                     <Grid item xs={12} md={4}>
                       <Typography variant="body1">
-                        <strong style={{ color: '#3f51b5' }}>Время расчета:</strong> {result.calculationTime.toFixed(2)} мс
+                        <strong style={{ color: '#3f51b5' }}>Общее время расчета:</strong> {getTotalPerformance().totalTime.toFixed(2)} мс
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+                        Сервер: {result.calculationTime.toFixed(2)} мс<br/>
+                        Клиент: {clientPerformance.renderTime.toFixed(2)} мс
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Typography variant="body1">
+                        <strong style={{ color: '#3f51b5' }}>Общая память:</strong> {formatMemoryToMB(getTotalPerformance().totalMemory)} МБ
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+                        Сервер: {formatMemoryToMB(result.memoryUsage)} МБ<br/>
+                        Клиент: {formatMemoryToMB(clientPerformance.memoryUsage)} МБ
                       </Typography>
                     </Grid>
                     <Grid item xs={12} md={4}>
                       <Typography variant="body1">
                         <strong style={{ color: '#3f51b5' }}>Количество операций:</strong> {result.operationsCount.toLocaleString()}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <Typography variant="body1">
-                        <strong style={{ color: '#3f51b5' }}>Использовано памяти:</strong> {formatMemorySize(result.memoryUsage)}
                       </Typography>
                     </Grid>
                   </Grid>

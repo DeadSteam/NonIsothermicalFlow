@@ -7,7 +7,7 @@ export type { MaterialPropertyValue, MaterialCoefficientValue };
 
 export const getAllMaterials = async (): Promise<Material[]> => {
   const response = await axios.get(getApiUrl('/materials'));
-  return response.data;
+    return response.data;
 };
 
 export const getMaterialById = async (id: string): Promise<Material> => {
@@ -80,5 +80,5 @@ export const updateMaterialCoefficient = async (
   const response = await axios.put(getApiUrl(`/material-coefficients/material/${materialId}/coefficient/${coefficientId}`), {
     coefficientValue: value
   });
-  return response.data;
+    return response.data;
 }; 
