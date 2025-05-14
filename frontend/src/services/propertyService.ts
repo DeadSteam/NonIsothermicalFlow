@@ -8,26 +8,45 @@ export interface MaterialProperty {
   description: string;
 }
 
+// Создаю экземпляр axios с авторизацией
+const propertyApi = axios.create({
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Добавляю интерцептор для авторизованных запросов
+propertyApi.interceptors.request.use((config) => {
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    const user = JSON.parse(userStr);
+    if (user.token) {
+      config.headers.Authorization = `Bearer ${user.token}`;
+    }
+  }
+  return config;
+});
+
 export const getAllProperties = async (): Promise<MaterialProperty[]> => {
-  const response = await axios.get(getApiUrl('/properties'));
+  const response = await propertyApi.get(getApiUrl('/material-properties').replace('/v1', ''));
   return response.data;
 };
 
 export const getPropertyById = async (id: string): Promise<MaterialProperty> => {
-  const response = await axios.get(getApiUrl(`/properties/${id}`));
+  const response = await propertyApi.get(getApiUrl(`/material-properties/${id}`).replace('/v1', ''));
   return response.data;
 };
 
 export const createProperty = async (property: Omit<MaterialProperty, 'id'>): Promise<MaterialProperty> => {
-  const response = await axios.post(getApiUrl('/properties'), property);
+  const response = await propertyApi.post(getApiUrl('/material-properties').replace('/v1', ''), property);
   return response.data;
 };
 
 export const updateProperty = async (id: string, property: Partial<MaterialProperty>): Promise<MaterialProperty> => {
-  const response = await axios.put(getApiUrl(`/properties/${id}`), property);
+  const response = await propertyApi.put(getApiUrl(`/material-properties/${id}`).replace('/v1', ''), property);
   return response.data;
 };
 
 export const deleteProperty = async (id: string): Promise<void> => {
-  await axios.delete(getApiUrl(`/properties/${id}`));
+  await propertyApi.delete(getApiUrl(`/material-properties/${id}`).replace('/v1', ''));
 }; 

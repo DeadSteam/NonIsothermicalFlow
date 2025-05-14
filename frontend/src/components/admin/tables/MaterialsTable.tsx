@@ -215,8 +215,6 @@ const MaterialsTable: React.FC = () => {
             <TableRow>
                 <TableCell>Название</TableCell>
                 <TableCell>Тип материала</TableCell>
-                <TableCell>Количество свойств</TableCell>
-                <TableCell>Количество коэффициентов</TableCell>
               <TableCell align="right">Действия</TableCell>
             </TableRow>
           </TableHead>
@@ -225,8 +223,6 @@ const MaterialsTable: React.FC = () => {
               <TableRow key={material.id}>
                 <TableCell>{material.name}</TableCell>
                   <TableCell>{material.materialType}</TableCell>
-                  <TableCell>{material.propertyValues?.length || 0}</TableCell>
-                  <TableCell>{material.coefficientValues?.length || 0}</TableCell>
                 <TableCell align="right">
                     <IconButton onClick={() => handleEdit(material)} color="primary">
                     <EditIcon />

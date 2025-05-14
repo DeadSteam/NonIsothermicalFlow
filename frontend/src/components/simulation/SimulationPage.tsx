@@ -36,10 +36,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import MaterialTable from '../materials/MaterialTable';
 import * as XLSX from 'xlsx';
 
-// Регистрация компонентов для Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -50,17 +48,6 @@ ChartJS.register(
   Legend
 );
 
-/**
- * Функция для форматирования размера памяти в читаемом виде 
- * @param bytes размер в байтах
- * @returns форматированная строка с единицами измерения
- */
-const formatMemorySize = (bytes: number): string => {
-  if (bytes < 0) return '0 Б';
-  if (bytes < 1024) return bytes + ' Б';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' КБ';
-  return (bytes / (1024 * 1024)).toFixed(2) + ' МБ';
-};
 
 // Общие стили для текстовых полей
 const textFieldStyles = {
@@ -77,17 +64,6 @@ const textFieldStyles = {
   }
 };
 
-/**
- * Функция для подготовки данных для таблицы с заданным шагом
- * @param positions массив позиций
- * @param data массив данных (температура или вязкость)
- * @param displayStep шаг отображения в метрах
- * @returns массив объектов для таблицы
- */
-interface TableDataItem {
-  position: number;
-  value: number;
-}
 
 const prepareTableData = (positions: number[], values: number[], displayStep: number) => {
   const result = [];

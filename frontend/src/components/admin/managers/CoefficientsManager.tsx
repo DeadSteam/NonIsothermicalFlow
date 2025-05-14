@@ -43,10 +43,32 @@ const CoefficientsManager: React.FC = () => {
     fetchCoefficients();
   }, []);
 
+  const getAuthHeaders = (): Record<string, string> => {
+    const userStr = localStorage.getItem('user');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      if (user.token) {
+        headers['Authorization'] = `Bearer ${user.token}`;
+      }
+    }
+    
+    return headers;
+  };
+
   const fetchCoefficients = async () => {
     try {
-      // TODO: Заменить на реальный API-запрос
-      const response = await fetch('/api/coefficients');
+      const response = await fetch('/api/v1/empirical-coefficients', {
+        headers: getAuthHeaders()
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Ошибка: ${response.status}`);
+      }
+      
       const data = await response.json();
       setCoefficients(data);
     } catch (err) {
@@ -100,17 +122,14 @@ const CoefficientsManager: React.FC = () => {
       }
 
       const url = selectedCoefficient 
-        ? `/api/coefficients/${selectedCoefficient.id}`
-        : '/api/coefficients';
+        ? `/api/v1/empirical-coefficients/${selectedCoefficient.id}`
+        : '/api/v1/empirical-coefficients';
       
       const method = selectedCoefficient ? 'PUT' : 'POST';
       
-      // TODO: Заменить на реальный API-запрос
       const response = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(formData)
       });
 
@@ -132,9 +151,9 @@ const CoefficientsManager: React.FC = () => {
     }
 
     try {
-      // TODO: Заменить на реальный API-запрос
-      const response = await fetch(`/api/coefficients/${id}`, {
-        method: 'DELETE'
+      const response = await fetch(`/api/v1/empirical-coefficients/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
       });
 
       if (!response.ok) {

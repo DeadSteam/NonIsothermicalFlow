@@ -8,8 +8,6 @@ import Box from '@mui/material/Box';
 // Components
 import Login from './components/auth/Login';
 import SignUp from './components/auth/SignUp';
-import AdminDashboard from './components/admin/AdminDashboard';
-import UserDashboard from './components/user/UserDashboard';
 import SimulationPage from './components/simulation/SimulationPage';
 import MaterialsComparison from './components/materials/MaterialsComparison';
 import AdminPanel from './components/admin/AdminPanel';
@@ -72,28 +70,10 @@ const App: React.FC = () => {
             
             {/* Защищенные маршруты для админа */}
             <Route 
-              path="/admin" 
-              element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
               path="/admin-panel" 
               element={
                 <ProtectedRoute requiredRole="ADMIN">
                   <AdminPanel />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Защищенные маршруты для всех авторизованных пользователей */}
-            <Route 
-              path="/user" 
-              element={
-                <ProtectedRoute>
-                  <UserDashboard />
                 </ProtectedRoute>
               } 
             />
@@ -113,8 +93,7 @@ const App: React.FC = () => {
                 </ProtectedRoute>
               } 
             />
-            
-            {/* Перенаправление на главную страницу */}
+
             <Route path="/" element={<Navigate to="/simulation" />} />
           </Routes>
         </Container>

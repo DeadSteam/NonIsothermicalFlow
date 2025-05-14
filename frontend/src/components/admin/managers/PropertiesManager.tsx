@@ -47,10 +47,32 @@ const PropertiesManager: React.FC = () => {
     fetchProperties();
   }, []);
 
+  const getAuthHeaders = (): Record<string, string> => {
+    const userStr = localStorage.getItem('user');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      if (user.token) {
+        headers['Authorization'] = `Bearer ${user.token}`;
+      }
+    }
+    
+    return headers;
+  };
+
   const fetchProperties = async () => {
     try {
-      // TODO: Заменить на реальный API-запрос
-      const response = await fetch('/api/properties');
+      const response = await fetch('/api/material-properties', {
+        headers: getAuthHeaders()
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Ошибка: ${response.status}`);
+      }
+      
       const data = await response.json();
       setProperties(data);
     } catch (err) {
@@ -104,17 +126,14 @@ const PropertiesManager: React.FC = () => {
       }
 
       const url = selectedProperty 
-        ? `/api/properties/${selectedProperty.id}`
-        : '/api/properties';
+        ? `/api/material-properties/${selectedProperty.id}`
+        : '/api/material-properties';
       
       const method = selectedProperty ? 'PUT' : 'POST';
       
-      // TODO: Заменить на реальный API-запрос
       const response = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(formData)
       });
 
@@ -136,9 +155,9 @@ const PropertiesManager: React.FC = () => {
     }
 
     try {
-      // TODO: Заменить на реальный API-запрос
-      const response = await fetch(`/api/properties/${id}`, {
-        method: 'DELETE'
+      const response = await fetch(`/api/material-properties/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
       });
 
       if (!response.ok) {
