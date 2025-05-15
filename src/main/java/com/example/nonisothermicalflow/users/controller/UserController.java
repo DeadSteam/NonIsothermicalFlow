@@ -56,16 +56,46 @@ public class UserController {
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден с ID: " + id));
         return ResponseEntity.ok(user);
     }
+    
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createUser(@RequestBody CreateUserRequest createUserRequest) {
+        try {
+            UserRole role = createUserRequest.getRoleName() != null && createUserRequest.getRoleName().equals("ADMIN") 
+                ? UserRole.ADMIN 
+                : UserRole.USER;
+                
+            User newUser = userService.createUser(
+                createUserRequest.getUsername(), 
+                createUserRequest.getPassword(), 
+                role
+            );
+            
+            return ResponseEntity.ok(newUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or authentication.principal.id == #id")
     public ResponseEntity<?> updateUser(
             @PathVariable UUID id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String password) {
+            @RequestBody UpdateUserRequest updateRequest) {
         
         try {
-            User updatedUser = userService.updateUser(id, username, password);
+            UserRole role = null;
+            if (updateRequest.getRoleName() != null) {
+                role = UserRole.fromString(updateRequest.getRoleName());
+            }
+            
+            User updatedUser = userService.updateUser(
+                id, 
+                updateRequest.getUsername(), 
+                updateRequest.getPassword(),
+                role
+            );
+            
             return ResponseEntity.ok(updatedUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
@@ -83,5 +113,67 @@ public class UserController {
         
         userService.deleteById(id);
         return ResponseEntity.ok(new MessageResponse("Пользователь успешно удален"));
+    }
+    
+    // Класс для запроса создания пользователя
+    public static class CreateUserRequest {
+        private String username;
+        private String password;
+        private String roleName;
+        
+        public String getUsername() {
+            return username;
+        }
+        
+        public void setUsername(String username) {
+            this.username = username;
+        }
+        
+        public String getPassword() {
+            return password;
+        }
+        
+        public void setPassword(String password) {
+            this.password = password;
+        }
+        
+        public String getRoleName() {
+            return roleName;
+        }
+        
+        public void setRoleName(String roleName) {
+            this.roleName = roleName;
+        }
+    }
+
+    // Класс для запроса обновления пользователя
+    public static class UpdateUserRequest {
+        private String username;
+        private String password;
+        private String roleName;
+        
+        public String getUsername() {
+            return username;
+        }
+        
+        public void setUsername(String username) {
+            this.username = username;
+        }
+        
+        public String getPassword() {
+            return password;
+        }
+        
+        public void setPassword(String password) {
+            this.password = password;
+        }
+        
+        public String getRoleName() {
+            return roleName;
+        }
+        
+        public void setRoleName(String roleName) {
+            this.roleName = roleName;
+        }
     }
 } 

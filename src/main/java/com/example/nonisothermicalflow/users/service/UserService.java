@@ -84,6 +84,30 @@ public class UserService {
     }
 
     @Transactional
+    public User updateUser(UUID id, String username, String password, UserRole role) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден с ID: " + id));
+        
+        if (username != null && !username.isBlank()) {
+            if (!user.getUsername().equals(username) && userRepository.existsByUsername(username)) {
+                throw new IllegalArgumentException("Пользователь с логином " + username + " уже существует");
+            }
+            user.setUsername(username);
+        }
+        
+        if (password != null && !password.isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(password));
+        }
+        
+        if (role != null) {
+            Role roleEntity = roleService.getOrCreateRole(role);
+            user.setRole(roleEntity);
+        }
+        
+        return userRepository.save(user);
+    }
+
+    @Transactional
     public void deleteById(UUID id) {
         userRepository.deleteById(id);
     }

@@ -125,9 +125,18 @@ const UsersTable: React.FC = () => {
 
     try {
       if (isEdit && formData.id) {
-        await userService.updateUser(formData.id, formData.username, formData.password);
+        await userService.updateUser(
+          formData.id, 
+          formData.username, 
+          formData.password,
+          formData.role
+        );
       } else {
-        await userService.createUser(formData.username, formData.password || '', formData.role);
+        await userService.createUser(
+          formData.username, 
+          formData.password || '', 
+          formData.role
+        );
       }
 
       await fetchUsers();

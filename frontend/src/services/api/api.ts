@@ -143,7 +143,7 @@ export const userService = {
       const response = await api.post('/users', { 
         username, 
         password,
-        roleName: role === 'ADMIN' ? 'ADMIN' : 'USER'
+        roleName: role
       });
       
       return {
@@ -159,14 +159,14 @@ export const userService = {
     }
   },
   
-  updateUser: async (id: string, username: string, password?: string): Promise<User> => {
+  updateUser: async (id: string, username: string, password?: string, role?: string): Promise<User> => {
     try {
-      // Создаем параметры для запроса
-      const params = new URLSearchParams();
-      if (username) params.append('username', username);
-      if (password) params.append('password', password);
+      const requestData: any = {};
+      if (username) requestData.username = username;
+      if (password) requestData.password = password;
+      if (role) requestData.roleName = role;
 
-      const response = await api.put(`/users/${id}?${params.toString()}`);
+      const response = await api.put(`/users/${id}`, requestData);
       return {
         id: response.data.id,
         username: response.data.username,
