@@ -11,6 +11,7 @@ import {
 import MaterialsTable from './tables/MaterialsTable';
 import PropertiesTable from './PropertiesTable';
 import CoefficientsTable from './CoefficientsTable';
+import UsersTable from './UsersTable';
 import DatabaseBackupPanel from './DatabaseBackupPanel';
 
 interface TabPanelProps {
@@ -75,6 +76,7 @@ const AdminPanel: React.FC = () => {
             <Tab label="Материалы" />
             <Tab label="Свойства" />
             <Tab label="Коэффициенты" />
+            <Tab label="Пользователи" />
             <Tab label="Резервные копии БД" />
           </Tabs>
         </Box>
@@ -89,6 +91,9 @@ const AdminPanel: React.FC = () => {
           <CoefficientsTable />
         </TabPanel>
         <TabPanel value={value} index={3}>
+          <UsersTable />
+        </TabPanel>
+        <TabPanel value={value} index={4}>
           <DatabaseBackupPanel />
         </TabPanel>
       </Paper>

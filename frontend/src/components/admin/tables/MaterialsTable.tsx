@@ -17,11 +17,17 @@ import {
   Typography,
   Box,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Collapse,
+  Tabs,
+  Tab
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import TuneIcon from '@mui/icons-material/Tune';
 import { 
   Material, 
   getAllMaterials, 
@@ -29,6 +35,8 @@ import {
   updateMaterial, 
   deleteMaterial 
 } from '../../../services/materialService';
+import MaterialPropertyValuesEditor from '../MaterialPropertyValuesEditor';
+import MaterialCoefficientValuesEditor from '../MaterialCoefficientValuesEditor';
 
 interface MaterialFormData {
   id: string | null;
@@ -52,6 +60,32 @@ interface MaterialFormData {
   }>;
 }
 
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`material-tabpanel-${index}`}
+      aria-labelledby={`material-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
+
 const MaterialsTable: React.FC = () => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(false);
@@ -65,6 +99,8 @@ const MaterialsTable: React.FC = () => {
   });
   const [isEdit, setIsEdit] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedMaterial, setExpandedMaterial] = useState<string | null>(null);
+  const [tabValue, setTabValue] = useState(0);
 
   useEffect(() => {
     fetchMaterials();
@@ -136,15 +172,15 @@ const MaterialsTable: React.FC = () => {
     try {
       if (isEdit && formData.id) {
         const updateData = {
-                name: formData.name,
+          name: formData.name,
           materialType: formData.materialType,
           propertyValues: formData.propertyValues,
           coefficientValues: formData.coefficientValues
         };
         await updateMaterial(formData.id, updateData);
-    } else {
+      } else {
         const createData = {
-        name: formData.name,
+          name: formData.name,
           materialType: formData.materialType,
           propertyValues: formData.propertyValues,
           coefficientValues: formData.coefficientValues
@@ -185,6 +221,25 @@ const MaterialsTable: React.FC = () => {
     }
   };
 
+  const handleExpandToggle = (materialId: string) => {
+    if (expandedMaterial === materialId) {
+      setExpandedMaterial(null);
+    } else {
+      setExpandedMaterial(materialId);
+      setTabValue(0);
+    }
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
+
+  const handleMaterialUpdate = (updatedMaterial: Material) => {
+    setMaterials(prevMaterials => 
+      prevMaterials.map(m => m.id === updatedMaterial.id ? updatedMaterial : m)
+    );
+  };
+
   return (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -209,33 +264,69 @@ const MaterialsTable: React.FC = () => {
           <CircularProgress />
         </Box>
       ) : (
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead>
-            <TableRow>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }}>
+            <TableHead>
+              <TableRow>
                 <TableCell>Название</TableCell>
                 <TableCell>Тип материала</TableCell>
-              <TableCell align="right">Действия</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {materials.map((material) => (
-              <TableRow key={material.id}>
-                <TableCell>{material.name}</TableCell>
-                  <TableCell>{material.materialType}</TableCell>
-                <TableCell align="right">
-                    <IconButton onClick={() => handleEdit(material)} color="primary">
-                    <EditIcon />
-                  </IconButton>
-                    <IconButton onClick={() => handleDelete(material.id)} color="error">
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
+                <TableCell align="right">Действия</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {materials.map((material) => (
+                <React.Fragment key={material.id}>
+                  <TableRow>
+                    <TableCell>{material.name}</TableCell>
+                    <TableCell>{material.materialType}</TableCell>
+                    <TableCell align="right">
+                      <IconButton 
+                        onClick={() => handleExpandToggle(material.id)} 
+                        color="primary"
+                        title="Редактировать свойства и коэффициенты"
+                      >
+                        <TuneIcon />
+                        {expandedMaterial === material.id ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      </IconButton>
+                      <IconButton onClick={() => handleEdit(material)} color="primary">
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton onClick={() => handleDelete(material.id)} color="error">
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell style={{ padding: 0 }} colSpan={3}>
+                      <Collapse in={expandedMaterial === material.id} timeout="auto" unmountOnExit>
+                        <Box sx={{ margin: 2 }}>
+                          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <Tabs value={tabValue} onChange={handleTabChange}>
+                              <Tab label="Свойства" />
+                              <Tab label="Коэффициенты" />
+                            </Tabs>
+                          </Box>
+                          <TabPanel value={tabValue} index={0}>
+                            <MaterialPropertyValuesEditor 
+                              material={material}
+                              onSave={handleMaterialUpdate}
+                            />
+                          </TabPanel>
+                          <TabPanel value={tabValue} index={1}>
+                            <MaterialCoefficientValuesEditor 
+                              material={material}
+                              onSave={handleMaterialUpdate}
+                            />
+                          </TabPanel>
+                        </Box>
+                      </Collapse>
+                    </TableCell>
+                  </TableRow>
+                </React.Fragment>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       <Dialog open={open} onClose={handleClose}>

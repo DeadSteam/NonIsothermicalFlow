@@ -19,12 +19,15 @@ import {
   Alert,
   LinearProgress,
   Stack,
-  Tooltip
+  Tooltip,
+  Collapse
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import BackupIcon from '@mui/icons-material/Backup';
 import RestoreIcon from '@mui/icons-material/Restore';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { DatabaseBackup } from '../../types/DatabaseBackup';
 import { 
   getAllBackups, 
@@ -32,11 +35,14 @@ import {
   restoreFromBackup, 
   deleteBackup 
 } from '../../services/databaseService';
+import axios from 'axios';
 
 const DatabaseBackupPanel: React.FC = () => {
   const [backups, setBackups] = useState<DatabaseBackup[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const [showErrorDetails, setShowErrorDetails] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   // Диалоги подтверждения
@@ -49,9 +55,34 @@ const DatabaseBackupPanel: React.FC = () => {
     backup: null
   });
 
+  // Функция для обработки ошибок
+  const handleError = (err: any, defaultMessage: string) => {
+    console.error(err);
+    
+    if (axios.isAxiosError(err) && err.response) {
+      // Получаем подробную ошибку с сервера, если она есть
+      const serverError = err.response.data?.error || err.response.data?.message;
+      if (serverError) {
+        setError(defaultMessage);
+        setErrorDetails(serverError);
+        return;
+      }
+    }
+    
+    // Если нет подробной ошибки, показываем общее сообщение
+    setError(defaultMessage);
+    setErrorDetails(err.message);
+  };
+
+  const toggleErrorDetails = () => {
+    setShowErrorDetails(!showErrorDetails);
+  };
+
   const fetchBackups = async () => {
     setLoading(true);
     setError(null);
+    setErrorDetails(null);
+    setShowErrorDetails(false);
     try {
       const data = await getAllBackups();
       // Сортируем по дате создания (если она есть), иначе по имени
@@ -62,8 +93,7 @@ const DatabaseBackupPanel: React.FC = () => {
         return a.name.localeCompare(b.name);
       }));
     } catch (err) {
-      setError('Не удалось получить список резервных копий');
-      console.error(err);
+      handleError(err, 'Не удалось получить список резервных копий');
     } finally {
       setLoading(false);
     }
@@ -76,14 +106,15 @@ const DatabaseBackupPanel: React.FC = () => {
   const handleCreateBackup = async () => {
     setLoading(true);
     setError(null);
+    setErrorDetails(null);
+    setShowErrorDetails(false);
     setSuccessMessage(null);
     try {
       const response = await createBackup();
       setSuccessMessage(response.message);
       fetchBackups();
     } catch (err) {
-      setError('Не удалось создать резервную копию');
-      console.error(err);
+      handleError(err, 'Не удалось создать резервную копию');
     } finally {
       setLoading(false);
     }
@@ -94,13 +125,14 @@ const DatabaseBackupPanel: React.FC = () => {
     
     setLoading(true);
     setError(null);
+    setErrorDetails(null);
+    setShowErrorDetails(false);
     setSuccessMessage(null);
     try {
       const response = await restoreFromBackup(restoreDialog.backup.name);
       setSuccessMessage(response.message);
     } catch (err) {
-      setError('Не удалось восстановить из резервной копии');
-      console.error(err);
+      handleError(err, 'Не удалось восстановить из резервной копии');
     } finally {
       setLoading(false);
       setRestoreDialog({ open: false, backup: null });
@@ -112,14 +144,15 @@ const DatabaseBackupPanel: React.FC = () => {
     
     setLoading(true);
     setError(null);
+    setErrorDetails(null);
+    setShowErrorDetails(false);
     setSuccessMessage(null);
     try {
       const response = await deleteBackup(deleteDialog.backup.name);
       setSuccessMessage(response.message);
       fetchBackups();
     } catch (err) {
-      setError('Не удалось удалить резервную копию');
-      console.error(err);
+      handleError(err, 'Не удалось удалить резервную копию');
     } finally {
       setLoading(false);
       setDeleteDialog({ open: false, backup: null });
@@ -163,15 +196,42 @@ const DatabaseBackupPanel: React.FC = () => {
         </Stack>
       </Box>
 
+      {loading && <LinearProgress sx={{ mb: 2 }} />}
+
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+        <Box mb={2}>
+          <Alert 
+            severity="error" 
+            action={
+              errorDetails && (
+                <IconButton
+                  color="inherit"
+                  size="small"
+                  onClick={toggleErrorDetails}
+                >
+                  {showErrorDetails ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              )
+            }
+          >
+            {error}
+          </Alert>
+          
+          {errorDetails && (
+            <Collapse in={showErrorDetails}>
+              <Paper sx={{ p: 2, mt: 1, backgroundColor: '#fff9f9' }}>
+                <Typography variant="body2" component="pre" sx={{ whiteSpace: 'pre-wrap', overflowX: 'auto' }}>
+                  {errorDetails}
+                </Typography>
+              </Paper>
+            </Collapse>
+          )}
+        </Box>
       )}
 
       {successMessage && (
         <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>
       )}
-
-      {loading && <LinearProgress sx={{ mb: 2 }} />}
 
       <Paper sx={{ width: '100%', mb: 2 }}>
         <TableContainer>
@@ -187,7 +247,7 @@ const DatabaseBackupPanel: React.FC = () => {
               {backups.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} align="center">
-                    Резервные копии не найдены
+                    {loading ? 'Загрузка...' : 'Резервные копии не найдены'}
                   </TableCell>
                 </TableRow>
               ) : (

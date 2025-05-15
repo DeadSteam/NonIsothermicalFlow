@@ -1,0 +1,7 @@
+{
+  "backupName": "backup_20250515_000433",
+  "timestamp": "20250515_000433",
+  "createdAt": "Thu May 15 00:04:33 MSK 2025",
+  "materialsDbUrl": "jdbc:postgresql://localhost:5432/materials_db",
+  "usersDbUrl": "jdbc:postgresql://localhost:5433/users_db"
+}

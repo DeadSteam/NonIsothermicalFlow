@@ -138,6 +138,27 @@ export const userService = {
     }
   },
   
+  createUser: async (username: string, password: string, role: string): Promise<User> => {
+    try {
+      const response = await api.post('/users', { 
+        username, 
+        password,
+        roleName: role === 'ADMIN' ? 'ADMIN' : 'USER'
+      });
+      
+      return {
+        id: response.data.id,
+        username: response.data.username,
+        role: response.data.role.name === 'ADMIN' ? 'ADMIN' : 'USER'
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(error.response.data.message || 'Ошибка создания пользователя');
+      }
+      throw new Error('Сервер недоступен. Пожалуйста, попробуйте позже.');
+    }
+  },
+  
   updateUser: async (id: string, username: string, password?: string): Promise<User> => {
     try {
       // Создаем параметры для запроса

@@ -1,7 +1,10 @@
-import axios from 'axios';
+import api from './api/api';
 import { BackupResponse, DatabaseBackup, RestoreResponse } from '../types/DatabaseBackup';
 
-const API_URL = '/api/admin/database';
+// Контроллер на бэкенде использует путь /api/admin/database
+// baseURL в api.ts содержит 'http://localhost:8080/api'
+// поэтому здесь нужен только /admin/database
+const API_URL = '/admin/database';
 
 // Преобразование строки имени бэкапа в объект DatabaseBackup
 const parseBackupName = (name: string): DatabaseBackup => {
@@ -34,21 +37,21 @@ const parseBackupName = (name: string): DatabaseBackup => {
 };
 
 export const getAllBackups = async (): Promise<DatabaseBackup[]> => {
-  const response = await axios.get<string[]>(`${API_URL}/backups`);
+  const response = await api.get<string[]>(`${API_URL}/backups`);
   return response.data.map(parseBackupName);
 };
 
 export const createBackup = async (): Promise<BackupResponse> => {
-  const response = await axios.post<BackupResponse>(`${API_URL}/backup`);
+  const response = await api.post<BackupResponse>(`${API_URL}/backup`);
   return response.data;
 };
 
 export const restoreFromBackup = async (backupName: string): Promise<RestoreResponse> => {
-  const response = await axios.post<RestoreResponse>(`${API_URL}/restore/${backupName}`);
+  const response = await api.post<RestoreResponse>(`${API_URL}/restore/${backupName}`);
   return response.data;
 };
 
 export const deleteBackup = async (backupName: string): Promise<RestoreResponse> => {
-  const response = await axios.delete<RestoreResponse>(`${API_URL}/backup/${backupName}`);
+  const response = await api.delete<RestoreResponse>(`${API_URL}/backup/${backupName}`);
   return response.data;
 }; 
