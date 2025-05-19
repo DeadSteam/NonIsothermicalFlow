@@ -24,18 +24,18 @@ export interface MathModel {
   width: number;                  // Ширина канала (W), м
   depth: number;                  // Глубина канала (H), м
   length: number;                 // Длина канала (L), м
-  density: number;                // Плотность (ρ), кг/м³
-  heatCapacity: number;           // Удельная теплоемкость (c), Дж/(кг·°C)
-  glassTransitionTemp: number;    // Температура стеклования (Tg), °С
-  meltingTemp: number;            // Температура плавления (T0), °C
+  density: number | string;                // Плотность (ρ), кг/м³
+  heatCapacity: number | string;           // Удельная теплоемкость (c), Дж/(кг·°C)
+  glassTransitionTemp: number | string;    // Температура стеклования (Tg), °С
+  meltingTemp: number | string;            // Температура плавления (T0), °C
   coverSpeed: number;             // Скорость крышки (Vu), м/с
   coverTemp: number;              // Температура крышки (Tu), °C
-  mu0: number;                    // Коэффициент консистенции (μ0), Па·с^n
-  firstConstantVLF: number;       // Первая константа уравнения ВЛФ, C1,g
-  secondConstantVLF: number;      // Вторая константа уравнения ВЛФ, C2,g , °С
-  castingTemp: number;            // Температура приведения (Tr), °C
-  flowIndex: number;              // Индекс течения (n)
-  heatTransfer: number;           // Коэффициент теплоотдачи (αu), Вт/(м²·°C)
+  mu0: number | string;                    // Коэффициент консистенции (μ0), Па·с^n
+  firstConstantVLF: number | string;       // Первая константа уравнения ВЛФ, C1,g
+  secondConstantVLF: number | string;      // Вторая константа уравнения ВЛФ, C2,g , °С
+  castingTemp: number | string;            // Температура приведения (Tr), °C
+  flowIndex: number | string;              // Индекс течения (n)
+  heatTransfer: number | string;           // Коэффициент теплоотдачи (αu), Вт/(м²·°C)
   step: number;                   // Шаг расчета (Δz), м
   displayStep: number;            // Шаг отображения таблицы, м
 }

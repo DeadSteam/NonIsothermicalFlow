@@ -4787,3 +4787,325 @@ CREATE SCHEMA
 2025-05-20 00:37:13 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
 2025-05-20 00:37:13 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.example.nonisothermicalflow.math.model.ResultModel@29af6856]
 2025-05-20 00:37:13 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:41:13 [http-nio-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials
+2025-05-20 00:41:13 [http-nio-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials
+2025-05-20 00:41:13 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials", parameters={}
+2025-05-20 00:41:13 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getAllMaterials()
+2025-05-20 00:41:13 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:41:13 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.Material@325e457a, com.example.nonisothermicalflow. (truncated)...]
+2025-05-20 00:41:13 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:41:13 [http-nio-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:41:14 [http-nio-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:41:14 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", parameters={}
+2025-05-20 00:41:14 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getMaterialById(UUID)
+2025-05-20 00:41:14 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:41:14 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.example.nonisothermicalflow.materials.model.Material@184e42d0]
+2025-05-20 00:41:14 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:41:44 [http-nio-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials
+2025-05-20 00:41:44 [http-nio-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials
+2025-05-20 00:41:44 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials", parameters={}
+2025-05-20 00:41:44 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getAllMaterials()
+2025-05-20 00:41:44 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:41:44 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.Material@6ff24d0d, com.example.nonisothermicalflow. (truncated)...]
+2025-05-20 00:41:44 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:41:44 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:41:44 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:41:44 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", parameters={}
+2025-05-20 00:41:44 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getMaterialById(UUID)
+2025-05-20 00:41:44 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:41:44 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.example.nonisothermicalflow.materials.model.Material@43bbd586]
+2025-05-20 00:41:44 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:42:22 [http-nio-8080-exec-4] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials
+2025-05-20 00:42:22 [http-nio-8080-exec-4] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials
+2025-05-20 00:42:22 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials", parameters={}
+2025-05-20 00:42:22 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getAllMaterials()
+2025-05-20 00:42:22 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:42:22 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.Material@204d5c45, com.example.nonisothermicalflow. (truncated)...]
+2025-05-20 00:42:22 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:42:22 [http-nio-8080-exec-8] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:42:22 [http-nio-8080-exec-8] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:42:22 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", parameters={}
+2025-05-20 00:42:22 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getMaterialById(UUID)
+2025-05-20 00:42:22 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:42:22 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.example.nonisothermicalflow.materials.model.Material@3aba8cee]
+2025-05-20 00:42:22 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:42:56 [http-nio-8080-exec-9] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials
+2025-05-20 00:42:56 [http-nio-8080-exec-9] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials
+2025-05-20 00:42:56 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials", parameters={}
+2025-05-20 00:42:56 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getAllMaterials()
+2025-05-20 00:42:56 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:42:56 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.Material@39ba3931, com.example.nonisothermicalflow. (truncated)...]
+2025-05-20 00:42:56 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:42:56 [http-nio-8080-exec-10] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:42:56 [http-nio-8080-exec-10] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:42:56 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", parameters={}
+2025-05-20 00:42:56 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getMaterialById(UUID)
+2025-05-20 00:42:56 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:42:56 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.example.nonisothermicalflow.materials.model.Material@7088745b]
+2025-05-20 00:42:56 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:43:55 [http-nio-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/users/me
+2025-05-20 00:43:55 [http-nio-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/users/me
+2025-05-20 00:43:55 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/users/me", parameters={}
+2025-05-20 00:43:55 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.users.controller.UserController#getCurrentUser()
+2025-05-20 00:43:55 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:43:55 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [User(id=0c953231-65ef-4396-832f-ee5e761835d3, username=admin, passwordHash=$2a$10$2feWgkwvTPGWnxKTrY (truncated)...]
+2025-05-20 00:43:55 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:43:55 [http-nio-8080-exec-2] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/users/me
+2025-05-20 00:43:55 [http-nio-8080-exec-2] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/users/me
+2025-05-20 00:43:55 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/users/me", parameters={}
+2025-05-20 00:43:55 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.users.controller.UserController#getCurrentUser()
+2025-05-20 00:43:55 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:43:55 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [User(id=0c953231-65ef-4396-832f-ee5e761835d3, username=admin, passwordHash=$2a$10$2feWgkwvTPGWnxKTrY (truncated)...]
+2025-05-20 00:43:55 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:43:55 [http-nio-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/users/me
+2025-05-20 00:43:55 [http-nio-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/users/me
+2025-05-20 00:43:55 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/users/me", parameters={}
+2025-05-20 00:43:55 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.users.controller.UserController#getCurrentUser()
+2025-05-20 00:43:55 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:43:55 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [User(id=0c953231-65ef-4396-832f-ee5e761835d3, username=admin, passwordHash=$2a$10$2feWgkwvTPGWnxKTrY (truncated)...]
+2025-05-20 00:43:55 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:43:55 [http-nio-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/users/me
+2025-05-20 00:43:55 [http-nio-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/users/me
+2025-05-20 00:43:55 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/users/me", parameters={}
+2025-05-20 00:43:55 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.users.controller.UserController#getCurrentUser()
+2025-05-20 00:43:55 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:43:55 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [User(id=0c953231-65ef-4396-832f-ee5e761835d3, username=admin, passwordHash=$2a$10$2feWgkwvTPGWnxKTrY (truncated)...]
+2025-05-20 00:43:55 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:43:55 [http-nio-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials
+2025-05-20 00:43:55 [http-nio-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials
+2025-05-20 00:43:55 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials", parameters={}
+2025-05-20 00:43:55 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getAllMaterials()
+2025-05-20 00:43:55 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:43:55 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.Material@3886469d, com.example.nonisothermicalflow. (truncated)...]
+2025-05-20 00:43:55 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:43:55 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials
+2025-05-20 00:43:55 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials
+2025-05-20 00:43:55 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials", parameters={}
+2025-05-20 00:43:55 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getAllMaterials()
+2025-05-20 00:43:55 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:43:55 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.Material@3dd7b1dc, com.example.nonisothermicalflow. (truncated)...]
+2025-05-20 00:43:55 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:43:55 [http-nio-8080-exec-4] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:43:55 [http-nio-8080-exec-4] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:43:55 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", parameters={}
+2025-05-20 00:43:55 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getMaterialById(UUID)
+2025-05-20 00:43:55 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:43:55 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.example.nonisothermicalflow.materials.model.Material@32e92c54]
+2025-05-20 00:43:55 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:43:55 [http-nio-8080-exec-8] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:43:55 [http-nio-8080-exec-8] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:43:55 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", parameters={}
+2025-05-20 00:43:55 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getMaterialById(UUID)
+2025-05-20 00:43:55 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:43:55 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.example.nonisothermicalflow.materials.model.Material@4aca996b]
+2025-05-20 00:43:55 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:43:55 [http-nio-8080-exec-9] DEBUG o.s.security.web.FilterChainProxy - Securing GET /logo192.png
+2025-05-20 00:43:55 [http-nio-8080-exec-9] DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
+2025-05-20 00:43:55 [http-nio-8080-exec-9] ERROR c.e.n.security.AuthEntryPointJwt - Ошибка авторизации: Full authentication is required to access this resource
+2025-05-20 00:43:59 [http-nio-8080-exec-10] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials/7dc29a0f-bfe4-40a6-864d-10ae6d8aa8d9
+2025-05-20 00:43:59 [http-nio-8080-exec-10] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials/7dc29a0f-bfe4-40a6-864d-10ae6d8aa8d9
+2025-05-20 00:43:59 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials/7dc29a0f-bfe4-40a6-864d-10ae6d8aa8d9", parameters={}
+2025-05-20 00:43:59 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getMaterialById(UUID)
+2025-05-20 00:43:59 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:43:59 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.example.nonisothermicalflow.materials.model.Material@9a75015]
+2025-05-20 00:43:59 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:04 [http-nio-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Securing OPTIONS /api/v1/materials/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12
+2025-05-20 00:44:04 [http-nio-8080-exec-2] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12
+2025-05-20 00:44:04 [http-nio-8080-exec-2] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12
+2025-05-20 00:44:04 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12", parameters={}
+2025-05-20 00:44:04 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getMaterialById(UUID)
+2025-05-20 00:44:04 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:04 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.example.nonisothermicalflow.materials.model.Material@58c8acda]
+2025-05-20 00:44:04 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:06 [http-nio-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:44:06 [http-nio-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+2025-05-20 00:44:06 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", parameters={}
+2025-05-20 00:44:06 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getMaterialById(UUID)
+2025-05-20 00:44:06 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:06 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.example.nonisothermicalflow.materials.model.Material@32302994]
+2025-05-20 00:44:06 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:16 [http-nio-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials/7dc29a0f-bfe4-40a6-864d-10ae6d8aa8d9
+2025-05-20 00:44:16 [http-nio-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials/7dc29a0f-bfe4-40a6-864d-10ae6d8aa8d9
+2025-05-20 00:44:16 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials/7dc29a0f-bfe4-40a6-864d-10ae6d8aa8d9", parameters={}
+2025-05-20 00:44:16 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getMaterialById(UUID)
+2025-05-20 00:44:16 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:16 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [com.example.nonisothermicalflow.materials.model.Material@7a1dc357]
+2025-05-20 00:44:16 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:18 [http-nio-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials
+2025-05-20 00:44:18 [http-nio-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials
+2025-05-20 00:44:18 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials", parameters={}
+2025-05-20 00:44:18 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getAllMaterials()
+2025-05-20 00:44:18 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:18 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.Material@11fb3e27, com.example.nonisothermicalflow. (truncated)...]
+2025-05-20 00:44:18 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:18 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials
+2025-05-20 00:44:18 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials
+2025-05-20 00:44:18 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials", parameters={}
+2025-05-20 00:44:18 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getAllMaterials()
+2025-05-20 00:44:18 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:18 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.Material@434762af, com.example.nonisothermicalflow. (truncated)...]
+2025-05-20 00:44:18 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:19 [http-nio-8080-exec-4] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/users
+2025-05-20 00:44:19 [http-nio-8080-exec-4] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/users
+2025-05-20 00:44:19 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/users", parameters={}
+2025-05-20 00:44:19 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.users.controller.UserController#getAllUsers()
+2025-05-20 00:44:19 [http-nio-8080-exec-4] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.users.controller.UserController.getAllUsers(); target is of class [com.example.nonisothermicalflow.users.controller.UserController]
+2025-05-20 00:44:19 [http-nio-8080-exec-4] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.users.controller.UserController.getAllUsers(); target is of class [com.example.nonisothermicalflow.users.controller.UserController]
+2025-05-20 00:44:19 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:19 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[User(id=0c953231-65ef-4396-832f-ee5e761835d3, username=admin, passwordHash=$2a$10$2feWgkwvTPGWnxKTr (truncated)...]
+2025-05-20 00:44:19 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:19 [http-nio-8080-exec-8] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/users
+2025-05-20 00:44:19 [http-nio-8080-exec-8] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/users
+2025-05-20 00:44:19 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/users", parameters={}
+2025-05-20 00:44:19 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.users.controller.UserController#getAllUsers()
+2025-05-20 00:44:19 [http-nio-8080-exec-8] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.users.controller.UserController.getAllUsers(); target is of class [com.example.nonisothermicalflow.users.controller.UserController]
+2025-05-20 00:44:19 [http-nio-8080-exec-8] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.users.controller.UserController.getAllUsers(); target is of class [com.example.nonisothermicalflow.users.controller.UserController]
+2025-05-20 00:44:19 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:19 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[User(id=0c953231-65ef-4396-832f-ee5e761835d3, username=admin, passwordHash=$2a$10$2feWgkwvTPGWnxKTr (truncated)...]
+2025-05-20 00:44:19 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:19 [http-nio-8080-exec-9] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/admin/backups
+2025-05-20 00:44:19 [http-nio-8080-exec-9] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/admin/backups
+2025-05-20 00:44:19 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/admin/backups", parameters={}
+2025-05-20 00:44:19 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.admin.controller.DatabaseBackupController#getAllBackups()
+2025-05-20 00:44:19 [http-nio-8080-exec-9] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.admin.controller.DatabaseBackupController.getAllBackups(); target is of class [com.example.nonisothermicalflow.admin.controller.DatabaseBackupController]
+2025-05-20 00:44:19 [http-nio-8080-exec-9] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.admin.controller.DatabaseBackupController.getAllBackups(); target is of class [com.example.nonisothermicalflow.admin.controller.DatabaseBackupController]
+2025-05-20 00:44:19 [http-nio-8080-exec-9] INFO  c.e.n.a.c.DatabaseBackupController - Запрос на получение списка всех резервных копий
+2025-05-20 00:44:19 [http-nio-8080-exec-9] INFO  c.e.n.a.s.DockerDatabaseBackupService - Найдено 4 файлов в директории ./db_backups
+2025-05-20 00:44:19 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:19 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[DatabaseBackup(id=ea376e73-5e33-3551-9332-67ddc9673a25, filename=materials_db_20250520_003637.sql,  (truncated)...]
+2025-05-20 00:44:19 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:19 [http-nio-8080-exec-10] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/admin/backups
+2025-05-20 00:44:19 [http-nio-8080-exec-10] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/admin/backups
+2025-05-20 00:44:19 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/admin/backups", parameters={}
+2025-05-20 00:44:19 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.admin.controller.DatabaseBackupController#getAllBackups()
+2025-05-20 00:44:19 [http-nio-8080-exec-10] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.admin.controller.DatabaseBackupController.getAllBackups(); target is of class [com.example.nonisothermicalflow.admin.controller.DatabaseBackupController]
+2025-05-20 00:44:19 [http-nio-8080-exec-10] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.admin.controller.DatabaseBackupController.getAllBackups(); target is of class [com.example.nonisothermicalflow.admin.controller.DatabaseBackupController]
+2025-05-20 00:44:19 [http-nio-8080-exec-10] INFO  c.e.n.a.c.DatabaseBackupController - Запрос на получение списка всех резервных копий
+2025-05-20 00:44:19 [http-nio-8080-exec-10] INFO  c.e.n.a.s.DockerDatabaseBackupService - Найдено 4 файлов в директории ./db_backups
+2025-05-20 00:44:19 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:19 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[DatabaseBackup(id=ea376e73-5e33-3551-9332-67ddc9673a25, filename=materials_db_20250520_003637.sql,  (truncated)...]
+2025-05-20 00:44:19 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:20 [http-nio-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/empirical-coefficients
+2025-05-20 00:44:20 [http-nio-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/empirical-coefficients
+2025-05-20 00:44:20 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/empirical-coefficients", parameters={}
+2025-05-20 00:44:20 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.EmpericalCoefficientController#getAllEmpiricalCoefficients()
+2025-05-20 00:44:20 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:20 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.EmpiricalCoefficient@58283c66, com.example.nonisoth (truncated)...]
+2025-05-20 00:44:20 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:20 [http-nio-8080-exec-2] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/empirical-coefficients
+2025-05-20 00:44:20 [http-nio-8080-exec-2] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/empirical-coefficients
+2025-05-20 00:44:20 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/empirical-coefficients", parameters={}
+2025-05-20 00:44:20 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.EmpericalCoefficientController#getAllEmpiricalCoefficients()
+2025-05-20 00:44:20 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:20 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.EmpiricalCoefficient@73dd1707, com.example.nonisoth (truncated)...]
+2025-05-20 00:44:20 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:20 [http-nio-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/material-properties
+2025-05-20 00:44:20 [http-nio-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/material-properties
+2025-05-20 00:44:20 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/material-properties", parameters={}
+2025-05-20 00:44:20 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialPropertyController#getAllMaterialProperties()
+2025-05-20 00:44:20 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:20 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.MaterialProperty@79497b0a, com.example.nonisothermi (truncated)...]
+2025-05-20 00:44:20 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:20 [http-nio-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/material-properties
+2025-05-20 00:44:20 [http-nio-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/material-properties
+2025-05-20 00:44:20 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/material-properties", parameters={}
+2025-05-20 00:44:20 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialPropertyController#getAllMaterialProperties()
+2025-05-20 00:44:20 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:20 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.MaterialProperty@76b8bfe4, com.example.nonisothermi (truncated)...]
+2025-05-20 00:44:20 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:21 [http-nio-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials
+2025-05-20 00:44:21 [http-nio-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials
+2025-05-20 00:44:21 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials", parameters={}
+2025-05-20 00:44:21 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getAllMaterials()
+2025-05-20 00:44:21 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:21 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.Material@617e8699, com.example.nonisothermicalflow. (truncated)...]
+2025-05-20 00:44:21 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:21 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials
+2025-05-20 00:44:21 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials
+2025-05-20 00:44:21 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials", parameters={}
+2025-05-20 00:44:21 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getAllMaterials()
+2025-05-20 00:44:21 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:21 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.Material@22cf92dc, com.example.nonisothermicalflow. (truncated)...]
+2025-05-20 00:44:21 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:21 [http-nio-8080-exec-4] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/material-properties
+2025-05-20 00:44:21 [http-nio-8080-exec-4] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/material-properties
+2025-05-20 00:44:21 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/material-properties", parameters={}
+2025-05-20 00:44:21 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialPropertyController#getAllMaterialProperties()
+2025-05-20 00:44:21 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:21 [http-nio-8080-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.MaterialProperty@b47d434, com.example.nonisothermic (truncated)...]
+2025-05-20 00:44:21 [http-nio-8080-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:21 [http-nio-8080-exec-8] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/material-properties
+2025-05-20 00:44:21 [http-nio-8080-exec-8] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/material-properties
+2025-05-20 00:44:21 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/material-properties", parameters={}
+2025-05-20 00:44:21 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialPropertyController#getAllMaterialProperties()
+2025-05-20 00:44:21 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:21 [http-nio-8080-exec-8] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.MaterialProperty@cede6fe, com.example.nonisothermic (truncated)...]
+2025-05-20 00:44:21 [http-nio-8080-exec-8] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:21 [http-nio-8080-exec-9] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/empirical-coefficients
+2025-05-20 00:44:21 [http-nio-8080-exec-9] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/empirical-coefficients
+2025-05-20 00:44:21 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/empirical-coefficients", parameters={}
+2025-05-20 00:44:21 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.EmpericalCoefficientController#getAllEmpiricalCoefficients()
+2025-05-20 00:44:21 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:21 [http-nio-8080-exec-9] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.EmpiricalCoefficient@2fc453f, com.example.nonisothe (truncated)...]
+2025-05-20 00:44:21 [http-nio-8080-exec-9] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:21 [http-nio-8080-exec-10] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/empirical-coefficients
+2025-05-20 00:44:21 [http-nio-8080-exec-10] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/empirical-coefficients
+2025-05-20 00:44:21 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/empirical-coefficients", parameters={}
+2025-05-20 00:44:21 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.EmpericalCoefficientController#getAllEmpiricalCoefficients()
+2025-05-20 00:44:21 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:21 [http-nio-8080-exec-10] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.EmpiricalCoefficient@77793b55, com.example.nonisoth (truncated)...]
+2025-05-20 00:44:21 [http-nio-8080-exec-10] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:22 [http-nio-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/users
+2025-05-20 00:44:22 [http-nio-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/users
+2025-05-20 00:44:22 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/users", parameters={}
+2025-05-20 00:44:22 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.users.controller.UserController#getAllUsers()
+2025-05-20 00:44:22 [http-nio-8080-exec-1] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.users.controller.UserController.getAllUsers(); target is of class [com.example.nonisothermicalflow.users.controller.UserController]
+2025-05-20 00:44:22 [http-nio-8080-exec-1] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.users.controller.UserController.getAllUsers(); target is of class [com.example.nonisothermicalflow.users.controller.UserController]
+2025-05-20 00:44:22 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:22 [http-nio-8080-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[User(id=0c953231-65ef-4396-832f-ee5e761835d3, username=admin, passwordHash=$2a$10$2feWgkwvTPGWnxKTr (truncated)...]
+2025-05-20 00:44:22 [http-nio-8080-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:22 [http-nio-8080-exec-2] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/users
+2025-05-20 00:44:22 [http-nio-8080-exec-2] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/users
+2025-05-20 00:44:22 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/users", parameters={}
+2025-05-20 00:44:22 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.users.controller.UserController#getAllUsers()
+2025-05-20 00:44:22 [http-nio-8080-exec-2] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.users.controller.UserController.getAllUsers(); target is of class [com.example.nonisothermicalflow.users.controller.UserController]
+2025-05-20 00:44:22 [http-nio-8080-exec-2] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.users.controller.UserController.getAllUsers(); target is of class [com.example.nonisothermicalflow.users.controller.UserController]
+2025-05-20 00:44:22 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:22 [http-nio-8080-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[User(id=0c953231-65ef-4396-832f-ee5e761835d3, username=admin, passwordHash=$2a$10$2feWgkwvTPGWnxKTr (truncated)...]
+2025-05-20 00:44:22 [http-nio-8080-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:22 [http-nio-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/admin/backups
+2025-05-20 00:44:22 [http-nio-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/admin/backups
+2025-05-20 00:44:22 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/admin/backups", parameters={}
+2025-05-20 00:44:22 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.admin.controller.DatabaseBackupController#getAllBackups()
+2025-05-20 00:44:22 [http-nio-8080-exec-3] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.admin.controller.DatabaseBackupController.getAllBackups(); target is of class [com.example.nonisothermicalflow.admin.controller.DatabaseBackupController]
+2025-05-20 00:44:22 [http-nio-8080-exec-3] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.admin.controller.DatabaseBackupController.getAllBackups(); target is of class [com.example.nonisothermicalflow.admin.controller.DatabaseBackupController]
+2025-05-20 00:44:22 [http-nio-8080-exec-3] INFO  c.e.n.a.c.DatabaseBackupController - Запрос на получение списка всех резервных копий
+2025-05-20 00:44:22 [http-nio-8080-exec-3] INFO  c.e.n.a.s.DockerDatabaseBackupService - Найдено 4 файлов в директории ./db_backups
+2025-05-20 00:44:22 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:22 [http-nio-8080-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[DatabaseBackup(id=ea376e73-5e33-3551-9332-67ddc9673a25, filename=materials_db_20250520_003637.sql,  (truncated)...]
+2025-05-20 00:44:22 [http-nio-8080-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:22 [http-nio-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/admin/backups
+2025-05-20 00:44:22 [http-nio-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/admin/backups
+2025-05-20 00:44:22 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/admin/backups", parameters={}
+2025-05-20 00:44:22 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.admin.controller.DatabaseBackupController#getAllBackups()
+2025-05-20 00:44:22 [http-nio-8080-exec-5] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorizing method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.admin.controller.DatabaseBackupController.getAllBackups(); target is of class [com.example.nonisothermicalflow.admin.controller.DatabaseBackupController]
+2025-05-20 00:44:22 [http-nio-8080-exec-5] DEBUG o.s.s.a.m.AuthorizationManagerBeforeMethodInterceptor - Authorized method invocation ReflectiveMethodInvocation: public org.springframework.http.ResponseEntity com.example.nonisothermicalflow.admin.controller.DatabaseBackupController.getAllBackups(); target is of class [com.example.nonisothermicalflow.admin.controller.DatabaseBackupController]
+2025-05-20 00:44:22 [http-nio-8080-exec-5] INFO  c.e.n.a.c.DatabaseBackupController - Запрос на получение списка всех резервных копий
+2025-05-20 00:44:22 [http-nio-8080-exec-5] INFO  c.e.n.a.s.DockerDatabaseBackupService - Найдено 4 файлов в директории ./db_backups
+2025-05-20 00:44:22 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:22 [http-nio-8080-exec-5] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[DatabaseBackup(id=ea376e73-5e33-3551-9332-67ddc9673a25, filename=materials_db_20250520_003637.sql,  (truncated)...]
+2025-05-20 00:44:22 [http-nio-8080-exec-5] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:23 [http-nio-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials
+2025-05-20 00:44:23 [http-nio-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials
+2025-05-20 00:44:23 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials", parameters={}
+2025-05-20 00:44:23 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getAllMaterials()
+2025-05-20 00:44:23 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:23 [http-nio-8080-exec-6] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.Material@10fa4b4e, com.example.nonisothermicalflow. (truncated)...]
+2025-05-20 00:44:23 [http-nio-8080-exec-6] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-05-20 00:44:23 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/v1/materials
+2025-05-20 00:44:23 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/v1/materials
+2025-05-20 00:44:23 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/v1/materials", parameters={}
+2025-05-20 00:44:23 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.example.nonisothermicalflow.materials.controller.MaterialController#getAllMaterials()
+2025-05-20 00:44:23 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, text/plain, */*] and supported [application/json, application/*+json]
+2025-05-20 00:44:23 [http-nio-8080-exec-7] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.example.nonisothermicalflow.materials.model.Material@34aece25, com.example.nonisothermicalflow. (truncated)...]
+2025-05-20 00:44:23 [http-nio-8080-exec-7] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK

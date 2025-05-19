@@ -141,8 +141,22 @@ const SimulationPage: React.FC = () => {
           // Создаем новую модель на основе текущей
           const newModel = { ...model };
           
+          // Сначала сбрасываем значения свойств материала на пустые строки
+          newModel.density = '';
+          newModel.heatCapacity = '';
+          newModel.glassTransitionTemp = '';
+          newModel.meltingTemp = '';
+          
+          // Сбрасываем коэффициенты на пустые строки
+          newModel.mu0 = '';
+          newModel.firstConstantVLF = '';
+          newModel.secondConstantVLF = '';
+          newModel.castingTemp = '';
+          newModel.flowIndex = '';
+          newModel.heatTransfer = '';
+          
           // Применяем свойства материала
-          if (material.propertyValues) {
+          if (material.propertyValues && material.propertyValues.length > 0) {
             material.propertyValues.forEach(pv => {
               const propName = pv.property.propertyName.toLowerCase();
               
@@ -159,7 +173,7 @@ const SimulationPage: React.FC = () => {
           }
 
           // Применяем коэффициенты материала
-          if (material.coefficientValues) {
+          if (material.coefficientValues && material.coefficientValues.length > 0) {
             material.coefficientValues.forEach(cv => {
               const coefName = cv.coefficient.coefficientName.toLowerCase();
               
@@ -267,11 +281,24 @@ const SimulationPage: React.FC = () => {
     // Преобразуем значение в строку для проверки
     const strValue = String(value);
     
-    // Если поле пустое
-    if (strValue === '' || strValue === '.' || strValue === ',') {
+    // Поля, которые всегда должны быть заполнены
+    const requiredFields = ['width', 'depth', 'length', 'coverSpeed', 'coverTemp', 'step'];
+    
+    // Если это обязательное поле и оно пустое
+    if (requiredFields.includes(name) && (strValue === '' || strValue === '.' || strValue === ',')) {
       return 'Поле обязательно для заполнения';
     }
 
+    // Для свойств материала и коэффициентов предупреждаем, но не блокируем расчет
+    const optionalFields = ['density', 'heatCapacity', 'glassTransitionTemp', 'meltingTemp', 
+                           'mu0', 'firstConstantVLF', 'secondConstantVLF', 'castingTemp', 
+                           'flowIndex', 'heatTransfer'];
+    
+    // Если это необязательное поле и оно пустое - это допустимо
+    if (optionalFields.includes(name) && (strValue === '' || strValue === '.' || strValue === ',')) {
+      return null;
+    }
+    
     // Для поля количества пропусков шагов
     if (name === 'displayStep') {
       const numValue = Number(strValue);
@@ -294,6 +321,7 @@ const SimulationPage: React.FC = () => {
   const validateAllFields = (): boolean => {
     const newFieldErrors: FieldErrors = {};
     let hasErrors = false;
+    let missingOptionalFields = false;
 
     // Проверяем все поля модели
     Object.entries(model).forEach(([fieldName, value]) => {
@@ -302,13 +330,34 @@ const SimulationPage: React.FC = () => {
         newFieldErrors[fieldName] = error;
         hasErrors = true;
       }
+
+      // Проверяем, есть ли пустые поля свойств и коэффициентов
+      const optionalFields = ['density', 'heatCapacity', 'glassTransitionTemp', 'meltingTemp', 
+                             'mu0', 'firstConstantVLF', 'secondConstantVLF', 'castingTemp', 
+                             'flowIndex', 'heatTransfer'];
+      
+      if (optionalFields.includes(fieldName) && 
+          (value === '' || value === '.' || value === ',' || value === 0)) {
+        missingOptionalFields = true;
+      }
     });
 
     setFieldErrors(newFieldErrors);
+    
     if (hasErrors) {
       setError('Пожалуйста, исправьте ошибки в полях ввода');
+      return false;
     }
-    return !hasErrors;
+    
+    if (missingOptionalFields) {
+      // Предупреждаем, но не блокируем расчет
+      setError('Предупреждение: Некоторые свойства материала или коэффициенты не заданы. ' +
+               'Расчет может быть неточным или не сойтись. Продолжить?');
+    } else {
+      setError(null);
+    }
+    
+    return true;
   };
 
   // Обновляем обработчик запуска симуляции
@@ -325,30 +374,37 @@ const SimulationPage: React.FC = () => {
       // Преобразуем все числовые значения
       const normalizedModel: MathModel = {
         ...model,
+        // Обязательные поля
         width: Number(String(model.width).replace(',', '.')),
         depth: Number(String(model.depth).replace(',', '.')),
         length: Number(String(model.length).replace(',', '.')),
-        density: Number(String(model.density).replace(',', '.')),
-        heatCapacity: Number(String(model.heatCapacity).replace(',', '.')),
-        glassTransitionTemp: Number(String(model.glassTransitionTemp).replace(',', '.')),
-        meltingTemp: Number(String(model.meltingTemp).replace(',', '.')),
         coverSpeed: Number(String(model.coverSpeed).replace(',', '.')),
         coverTemp: Number(String(model.coverTemp).replace(',', '.')),
-        mu0: Number(String(model.mu0).replace(',', '.')),
-        firstConstantVLF: Number(String(model.firstConstantVLF).replace(',', '.')),
-        secondConstantVLF: Number(String(model.secondConstantVLF).replace(',', '.')),
-        castingTemp: Number(String(model.castingTemp).replace(',', '.')),
-        flowIndex: Number(String(model.flowIndex).replace(',', '.')),
-        heatTransfer: Number(String(model.heatTransfer).replace(',', '.')),
         step: Number(String(model.step).replace(',', '.')),
-        displayStep: Number(model.displayStep)
+        displayStep: Number(model.displayStep),
+        
+        // Необязательные поля - преобразуем пустые значения в нули
+        density: model.density === '' ? 0 : Number(String(model.density).replace(',', '.')),
+        heatCapacity: model.heatCapacity === '' ? 0 : Number(String(model.heatCapacity).replace(',', '.')),
+        glassTransitionTemp: model.glassTransitionTemp === '' ? 0 : Number(String(model.glassTransitionTemp).replace(',', '.')),
+        meltingTemp: model.meltingTemp === '' ? 0 : Number(String(model.meltingTemp).replace(',', '.')),
+        mu0: model.mu0 === '' ? 0 : Number(String(model.mu0).replace(',', '.')),
+        firstConstantVLF: model.firstConstantVLF === '' ? 0 : Number(String(model.firstConstantVLF).replace(',', '.')),
+        secondConstantVLF: model.secondConstantVLF === '' ? 0 : Number(String(model.secondConstantVLF).replace(',', '.')),
+        castingTemp: model.castingTemp === '' ? 0 : Number(String(model.castingTemp).replace(',', '.')),
+        flowIndex: model.flowIndex === '' ? 0 : Number(String(model.flowIndex).replace(',', '.')),
+        heatTransfer: model.heatTransfer === '' ? 0 : Number(String(model.heatTransfer).replace(',', '.'))
       };
-      
-      const result = await runSimulation(normalizedModel);
-      setResult(result);
+
+      const simulationResult = await runSimulation(normalizedModel);
+      setResult(simulationResult);
     } catch (err) {
       console.error('Ошибка при выполнении моделирования:', err);
-      setError('Ошибка при выполнении моделирования');
+      setError(
+        err instanceof Error
+          ? `Ошибка при выполнении моделирования: ${err.message}`
+          : 'Ошибка при выполнении моделирования'
+      );
     } finally {
       setLoading(false);
     }
@@ -456,8 +512,22 @@ const SimulationPage: React.FC = () => {
       // Создаем новую модель на основе текущей
       const newModel = { ...model };
       
+      // Сначала сбрасываем значения свойств материала на пустые строки
+      newModel.density = '';
+      newModel.heatCapacity = '';
+      newModel.glassTransitionTemp = '';
+      newModel.meltingTemp = '';
+      
+      // Сбрасываем коэффициенты на пустые строки
+      newModel.mu0 = '';
+      newModel.firstConstantVLF = '';
+      newModel.secondConstantVLF = '';
+      newModel.castingTemp = '';
+      newModel.flowIndex = '';
+      newModel.heatTransfer = '';
+      
       // Применяем свойства материала
-      if (material.propertyValues) {
+      if (material.propertyValues && material.propertyValues.length > 0) {
         material.propertyValues.forEach(pv => {
           const propName = pv.property.propertyName.toLowerCase();
           
@@ -474,7 +544,7 @@ const SimulationPage: React.FC = () => {
       }
 
       // Применяем коэффициенты материала
-      if (material.coefficientValues) {
+      if (material.coefficientValues && material.coefficientValues.length > 0) {
         material.coefficientValues.forEach(cv => {
           const coefName = cv.coefficient.coefficientName.toLowerCase();
           
