@@ -12,7 +12,7 @@ import MaterialsTable from './tables/MaterialsTable';
 import PropertiesTable from './PropertiesTable';
 import CoefficientsTable from './CoefficientsTable';
 import UsersTable from './UsersTable';
-import DatabaseBackupPanel from './DatabaseBackupPanel';
+import DatabaseBackupTable from './DatabaseBackupTable';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -94,7 +94,7 @@ const AdminPanel: React.FC = () => {
           <UsersTable />
         </TabPanel>
         <TabPanel value={value} index={4}>
-          <DatabaseBackupPanel />
+          <DatabaseBackupTable />
         </TabPanel>
       </Paper>
     </Container>
