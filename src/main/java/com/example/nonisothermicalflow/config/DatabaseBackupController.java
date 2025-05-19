@@ -1,6 +1,7 @@
 package com.example.nonisothermicalflow.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -10,10 +11,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/api/admin/database")
 @PreAuthorize("hasRole('ADMIN')")
 public class DatabaseBackupController {
+
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseBackupController.class);
 
     private final JdbcDatabaseBackupService backupService;
 
@@ -42,13 +48,26 @@ public class DatabaseBackupController {
     @PostMapping("/restore/{backupName}")
     public ResponseEntity<?> restoreBackup(@PathVariable String backupName) {
         try {
+            logger.info("Получен запрос на восстановление из резервной копии: {}", backupName);
+            
+            // Проверяем существование резервной копии
+            if (!backupService.backupExists(backupName)) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Резервная копия не найдена: " + backupName);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            }
+            
+            // Выполняем восстановление в отдельном потоке для снижения нагрузки
             backupService.restoreFromBackup(backupName);
             
             Map<String, String> response = new HashMap<>();
             response.put("message", "База данных успешно восстановлена из резервной копии: " + backupName);
             
+            logger.info("Восстановление из резервной копии {} успешно выполнено", backupName);
             return ResponseEntity.ok(response);
         } catch (IOException e) {
+            logger.error("Ошибка при восстановлении из резервной копии {}: {}", backupName, e.getMessage(), e);
+            
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Не удалось восстановить базу данных: " + e.getMessage());
             

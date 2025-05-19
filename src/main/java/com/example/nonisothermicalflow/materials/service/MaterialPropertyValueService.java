@@ -35,10 +35,8 @@ public class MaterialPropertyValueService {
                     materialId + " и свойства с ID: " + propertyId);
             }
             
-            MaterialPropertyValue propertyValue = new MaterialPropertyValue();
-            propertyValue.setMaterial(material);
-            propertyValue.setProperty(property);
-            propertyValue.setPropertyValue(value);
+            // Используем новый конструктор для автоматической инициализации составного ключа
+            MaterialPropertyValue propertyValue = new MaterialPropertyValue(material, property, value);
 
             return propertyValueRepository.save(propertyValue);
         } catch (Exception e) {

@@ -37,6 +37,19 @@ public class MaterialCoefficientValue {
     @NotNull(message = "Значение коэффициента не может быть пустым")
     @Column(name = "coefficient_value", nullable = false)
     private Double coefficientValue;
+    
+    /**
+     * Создает новый объект MaterialCoefficientValue и инициализирует составной ключ
+     * @param material материал
+     * @param coefficient коэффициент
+     * @param coefficientValue значение коэффициента
+     */
+    public MaterialCoefficientValue(Material material, EmpiricalCoefficient coefficient, Double coefficientValue) {
+        this.material = material;
+        this.coefficient = coefficient;
+        this.coefficientValue = coefficientValue;
+        this.id = new MaterialCoefficientValueId(material.getId(), coefficient.getId());
+    }
 }
 
 

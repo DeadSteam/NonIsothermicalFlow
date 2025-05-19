@@ -33,7 +33,13 @@ import {
   MaterialPropertyValue 
 } from '../../types/material.types';
 import { getAllProperties } from '../../services/propertyService';
-import { updateMaterial } from '../../services/materialService';
+import { 
+  updateMaterial, 
+  getMaterialProperties,
+  addMaterialProperty,
+  updateMaterialProperty,
+  deleteMaterialProperty
+} from '../../services/materialService';
 
 interface MaterialPropertyValuesEditorProps {
   material: Material;
@@ -125,31 +131,35 @@ const MaterialPropertyValuesEditor: React.FC<MaterialPropertyValuesEditorProps> 
         pv => pv.property.id === selectedProperty
       );
 
-      const updatedPropertyValues = [...propertyValues];
-
+      let updatedPropertyValue;
+      
       if (existingPropertyIndex >= 0) {
         // Если свойство уже существует, обновляем его значение
-        updatedPropertyValues[existingPropertyIndex] = {
-          ...updatedPropertyValues[existingPropertyIndex],
-          propertyValue: Number(propertyValue)
-        };
+        updatedPropertyValue = await updateMaterialProperty(
+          material.id,
+          selectedProperty,
+          Number(propertyValue)
+        );
+        
+        const updatedPropertyValues = [...propertyValues];
+        updatedPropertyValues[existingPropertyIndex] = updatedPropertyValue;
+        setPropertyValues(updatedPropertyValues);
       } else {
         // Иначе добавляем новое свойство
-        updatedPropertyValues.push({
-          property: selectedPropertyObj,
-          propertyValue: Number(propertyValue)
-        });
+        updatedPropertyValue = await addMaterialProperty(
+          material.id,
+          selectedProperty,
+          Number(propertyValue)
+        );
+        
+        setPropertyValues([...propertyValues, updatedPropertyValue]);
       }
 
-      setPropertyValues(updatedPropertyValues);
-
-      // Обновляем материал
+      // Обновляем материал в родительском компоненте
       const updatedMaterial = {
         ...material,
-        propertyValues: updatedPropertyValues
+        propertyValues: await getMaterialProperties(material.id)
       };
-
-      await updateMaterial(material.id, updatedMaterial);
       onSave(updatedMaterial);
 
       handleClose();
@@ -171,19 +181,20 @@ const MaterialPropertyValuesEditor: React.FC<MaterialPropertyValuesEditorProps> 
     }
 
     try {
+      // Удаляем значение свойства через API
+      await deleteMaterialProperty(material.id, propertyId);
+      
+      // Обновляем локальный список свойств
       const updatedPropertyValues = propertyValues.filter(
         pv => pv.property.id !== propertyId
       );
-
       setPropertyValues(updatedPropertyValues);
 
-      // Обновляем материал
+      // Обновляем материал в родительском компоненте
       const updatedMaterial = {
         ...material,
         propertyValues: updatedPropertyValues
       };
-
-      await updateMaterial(material.id, updatedMaterial);
       onSave(updatedMaterial);
     } catch (err) {
       console.error('Ошибка при удалении значения свойства:', err);

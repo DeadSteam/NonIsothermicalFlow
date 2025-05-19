@@ -28,7 +28,7 @@ import RestoreIcon from '@mui/icons-material/Restore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { DatabaseBackup } from '../../types/DatabaseBackup';
+import { DatabaseBackup, RestoreResponse } from '../../types/DatabaseBackup';
 import { 
   getAllBackups, 
   createBackup, 
@@ -128,11 +128,59 @@ const DatabaseBackupPanel: React.FC = () => {
     setErrorDetails(null);
     setShowErrorDetails(false);
     setSuccessMessage(null);
+    
     try {
-      const response = await restoreFromBackup(restoreDialog.backup.name);
-      setSuccessMessage(response.message);
+      // Добавляем задержку перед запросом для стабильности
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Восстанавливаем из резервной копии с повышенным таймаутом
+      const response = await axios.post<RestoreResponse>(
+        `/admin/database/restore/${restoreDialog.backup.name}`,
+        {},
+        { timeout: 60000 } // Увеличиваем таймаут до 60 секунд
+      );
+      
+      setSuccessMessage(response.data.message);
+      
+      // Перезагружаем приложение для загрузки восстановленных данных
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } catch (err) {
       handleError(err, 'Не удалось восстановить из резервной копии');
+      
+      if (axios.isAxiosError(err)) {
+        // Выводим всю доступную информацию об ошибке для диагностики
+        console.error('Полная информация об ошибке:', {
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+          headers: err.response?.headers,
+          config: err.config
+        });
+        
+        // Предлагаем ручной способ перезагрузки приложения
+        setErrorDetails(prev => (prev || '') + 
+          '\n\nПопробуйте выполнить следующие действия:\n' +
+          '1. Обновите страницу\n' +
+          '2. Войдите в систему заново\n' +
+          '3. Повторите восстановление из резервной копии'
+        );
+        
+        // Добавляем кнопку перезагрузки непосредственно в UI
+        setTimeout(() => {
+          const reloadButton = document.createElement('button');
+          reloadButton.innerText = 'Перезагрузить страницу';
+          reloadButton.style.padding = '10px';
+          reloadButton.style.margin = '10px 0';
+          reloadButton.onclick = () => window.location.reload();
+          
+          const errorElement = document.querySelector('.MuiAlert-root.MuiAlert-standardError');
+          if (errorElement) {
+            errorElement.appendChild(reloadButton);
+          }
+        }, 100);
+      }
     } finally {
       setLoading(false);
       setRestoreDialog({ open: false, backup: null });

@@ -90,14 +90,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/test/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
-                // для разработки можно временно разрешить доступ к API материалов
                 .requestMatchers("/api/v1/materials/**").permitAll()
                 .requestMatchers("/api/v1/material-properties/**").permitAll()
                 .requestMatchers("/api/v1/material-coefficients/**").permitAll()
-                // для разработки можно временно разрешить доступ к API математического моделирования
+                .requestMatchers("/api/material-coefficient-values/**").permitAll()
+                .requestMatchers("/api/material-properties/**").permitAll()
                 .requestMatchers("/api/math/**").permitAll()
                 .requestMatchers("/api/v1/math/**").permitAll()
-                // для разработки можно временно разрешить доступ к Swagger UI
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()
             );

@@ -20,14 +20,28 @@ export interface EmpiricalCoefficient {
   description?: string;
 }
 
+export interface MaterialPropertyValueId {
+  materialId: string;
+  propertyId: string;
+}
+
+export interface MaterialCoefficientValueId {
+  materialId: string;
+  coefficientId: string;
+}
+
 export interface MaterialPropertyValue {
+  id?: MaterialPropertyValueId;
   property: MaterialProperty;
   propertyValue: number;
+  material?: Partial<Material>;
 }
 
 export interface MaterialCoefficientValue {
+  id?: MaterialCoefficientValueId;
   coefficient: EmpiricalCoefficient;
   coefficientValue: number;
+  material?: Partial<Material>;
 }
 
 export interface MaterialFormData {

@@ -35,10 +35,8 @@ public class MaterialCoefficientValueService {
                     materialId + " и коэффициента с ID: " + coefficientId);
             }
             
-            MaterialCoefficientValue coefficientValue = new MaterialCoefficientValue();
-            coefficientValue.setMaterial(material);
-            coefficientValue.setCoefficient(coefficient);
-            coefficientValue.setCoefficientValue(value);
+            // Используем новый конструктор для автоматической инициализации составного ключа
+            MaterialCoefficientValue coefficientValue = new MaterialCoefficientValue(material, coefficient, value);
 
             return coefficientValueRepository.save(coefficientValue);
         } catch (Exception e) {

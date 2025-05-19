@@ -81,33 +81,11 @@ CREATE TABLE IF NOT EXISTS materials (
 -- Данные таблицы materials
 INSERT INTO materials (id_material, name, material_type) VALUES (a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11, 'Поликарбонат', '23ERT78');
 INSERT INTO materials (id_material, name, material_type) VALUES (b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12, 'Полипропилен', 'HFRT56');
-INSERT INTO materials (id_material, name, material_type) VALUES (7e66b957-82c0-429c-9817-93ce4672899d, '1', '1');
-
--- Структура таблицы roles
-CREATE TABLE IF NOT EXISTS roles (
-  id uuid NOT NULL,
-  name varchar(50) NOT NULL,
-  PRIMARY KEY (id)
-);
-
--- Данные таблицы roles
-
--- Структура таблицы users
-CREATE TABLE IF NOT EXISTS users (
-  id uuid NOT NULL,
-  username varchar(150) NOT NULL,
-  password_hash varchar(255) NOT NULL,
-  role_id uuid NOT NULL,
-  created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id)
-);
-
--- Данные таблицы users
+INSERT INTO materials (id_material, name, material_type) VALUES (2ea79ce2-a577-4094-92ed-7d46ce57668d, '12', '12');
 
 ALTER TABLE material_coefficient ADD CONSTRAINT material_coefficient_id_coefficient_fkey FOREIGN KEY (id_coefficient) REFERENCES empirical_coefficients(id_coefficient);
 ALTER TABLE material_coefficient ADD CONSTRAINT material_coefficient_id_material_fkey FOREIGN KEY (id_material) REFERENCES materials(id_material);
 ALTER TABLE material_property ADD CONSTRAINT material_property_id_property_fkey FOREIGN KEY (id_property) REFERENCES material_properties(id_property);
 ALTER TABLE material_property ADD CONSTRAINT material_property_id_material_fkey FOREIGN KEY (id_material) REFERENCES materials(id_material);
-ALTER TABLE users ADD CONSTRAINT users_role_id_fkey FOREIGN KEY (role_id) REFERENCES roles(id);
 
 COMMIT;

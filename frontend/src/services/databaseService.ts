@@ -47,8 +47,28 @@ export const createBackup = async (): Promise<BackupResponse> => {
 };
 
 export const restoreFromBackup = async (backupName: string): Promise<RestoreResponse> => {
-  const response = await api.post<RestoreResponse>(`${API_URL}/restore/${backupName}`);
-  return response.data;
+  try {
+    console.log(`Начинаем восстановление из резервной копии: ${backupName}`);
+    
+    // Используем расширенные опции для запроса
+    const response = await api.post<RestoreResponse>(
+      `${API_URL}/restore/${backupName}`, 
+      {}, // пустое тело запроса
+      {
+        timeout: 120000, // увеличенный таймаут (2 минуты)
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }
+    );
+    
+    console.log(`Восстановление успешно завершено: ${backupName}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Ошибка при восстановлении из резервной копии ${backupName}:`, error);
+    throw error;
+  }
 };
 
 export const deleteBackup = async (backupName: string): Promise<RestoreResponse> => {

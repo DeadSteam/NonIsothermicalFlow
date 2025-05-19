@@ -19,6 +19,8 @@ import java.util.Date;
 import java.util.List;
 import java.io.BufferedReader;
 import java.lang.StringBuilder;
+import java.io.InputStreamReader;
+import java.util.stream.Collectors;
 
 @Service
 public class JdbcDatabaseBackupService {
@@ -331,125 +333,133 @@ public class JdbcDatabaseBackupService {
     }
     
     /**
-     * Восстанавливает базу данных из SQL файла
+     * Восстанавливает базу данных из SQL файла используя pg_restore
      */
-    private void restoreDatabase(String dbUrl, String username, String password, String inputFile) throws SQLException, IOException {
-        logger.info("Подключение к базе данных: {}", dbUrl);
-        
-        // Чтение SQL файла
-        String sql = new String(Files.readAllBytes(Paths.get(inputFile)));
-        
-        try (Connection conn = DriverManager.getConnection(dbUrl, username, password)) {
-            // Отключаем автоматическую фиксацию изменений
-            conn.setAutoCommit(false);
+    private void restoreDatabase(String dbUrl, String username, String password, String inputFile) throws IOException {
+        try {
+            // Извлекаем имя базы данных из URL
+            String dbName = extractDatabaseName(dbUrl);
             
-            try (Statement stmt = conn.createStatement()) {
-                // Отключаем внешние ключи для PostgreSQL
-                stmt.execute("SET session_replication_role = 'replica';");
-                
-                logger.info("Очищаем все таблицы перед восстановлением");
-                // Очищаем все таблицы
-                clearAllTables(conn);
-                
-                logger.info("Начинаем выполнение SQL-скрипта восстановления");
-                
-                // Для более корректной обработки SQL-скрипта, будем обрабатывать его построчно
-                BufferedReader reader = new BufferedReader(new java.io.StringReader(sql));
-                StringBuilder currentStatement = new StringBuilder();
+            logger.info("Восстанавливаем базу данных: {}", dbName);
+            
+            // 1. Пересоздаем базу данных
+            recreateDatabase(dbName, username, password);
+            
+            // 2. Используем psql для восстановления (более надежный метод для PostgreSQL)
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                "psql", 
+                "-h", "localhost",
+                "-U", username,
+                "-d", dbName,
+                "-f", inputFile,
+                "--single-transaction"  // Важный флаг для атомарного восстановления
+            );
+            
+            // Устанавливаем переменную окружения PGPASSWORD для аутентификации
+            processBuilder.environment().put("PGPASSWORD", password);
+            
+            logger.info("Выполняем восстановление через psql: {}", dbName);
+            Process process = processBuilder.start();
+            
+            // Обработка вывода для логов
+            StringBuilder output = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
-                
                 while ((line = reader.readLine()) != null) {
-                    // Пропускаем пустые строки и комментарии
-                    line = line.trim();
-                    if (line.isEmpty() || line.startsWith("--")) {
-                        continue;
-                    }
-                    
-                    // Добавляем текущую строку к текущему выражению
-                    currentStatement.append(line).append("\n");
-                    
-                    // Если строка заканчивается точкой с запятой, выполняем собранное выражение
-                    if (line.endsWith(";")) {
-                        String statementToExecute = currentStatement.toString().trim();
-                        // Пропускаем команды BEGIN и COMMIT, мы управляем транзакцией сами
-                        if (!statementToExecute.equalsIgnoreCase("BEGIN;") && 
-                            !statementToExecute.equalsIgnoreCase("COMMIT;")) {
-                            try {
-                                stmt.execute(statementToExecute);
-                                logger.debug("Успешно выполнена команда: {}", statementToExecute);
-                            } catch (SQLException e) {
-                                logger.warn("Ошибка при выполнении SQL: {} - {}", statementToExecute, e.getMessage());
-                                // Продолжаем выполнение, обрабатывая неблокирующие ошибки
-                                // Например, если таблица уже существует при CREATE TABLE
-                                if (e.getMessage().contains("already exists") || 
-                                    e.getMessage().contains("duplicate key")) {
-                                    logger.warn("Некритическая ошибка, продолжаем восстановление");
-                                } else {
-                                    // Если это потенциально критическая ошибка, логируем подробности
-                                    logger.error("Критическая ошибка SQL: {}", e.getMessage(), e);
-                                }
-                            }
-                        }
-                        // Сбрасываем буфер для следующего выражения
-                        currentStatement.setLength(0);
-                    }
+                    output.append(line).append("\n");
                 }
-                
-                // Включаем обратно проверку внешних ключей
-                stmt.execute("SET session_replication_role = 'origin';");
-                
-                // Фиксируем изменения
-                conn.commit();
-                logger.info("Восстановление базы данных успешно завершено");
-                
-            } catch (SQLException e) {
-                // В случае ошибки откатываем изменения
-                logger.error("Ошибка при восстановлении, выполняем откат: {}", e.getMessage(), e);
-                conn.rollback();
-                throw e;
             }
+            
+            // Обработка ошибок
+            StringBuilder errors = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    errors.append(line).append("\n");
+                }
+            }
+            
+            // Ожидаем завершения процесса
+            int exitCode = process.waitFor();
+            
+            if (exitCode != 0) {
+                logger.error("Ошибка при восстановлении базы данных (код {}): {}", exitCode, errors);
+                throw new IOException("Ошибка при восстановлении базы данных: " + errors);
+            }
+            
+            // Логируем успешное восстановление
+            logger.info("База данных {} успешно восстановлена", dbName);
+            if (!output.toString().isEmpty()) {
+                logger.debug("Вывод psql: {}", output);
+            }
+            if (!errors.toString().isEmpty()) {
+                logger.warn("Предупреждения psql: {}", errors);
+            }
+            
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("Процесс восстановления был прерван", e);
+            throw new IOException("Процесс восстановления был прерван", e);
+        } catch (Exception e) {
+            logger.error("Ошибка при восстановлении базы данных: {}", e.getMessage(), e);
+            throw new IOException("Ошибка при восстановлении базы данных: " + e.getMessage(), e);
         }
     }
     
     /**
-     * Очищает все таблицы в базе данных
+     * Извлекает имя базы данных из URL
      */
-    private void clearAllTables(Connection conn) throws SQLException {
-        try (Statement stmt = conn.createStatement()) {
-            // Получаем список всех таблиц из схемы public
-            ResultSet rs = stmt.executeQuery(
-                "SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
+    private String extractDatabaseName(String dbUrl) {
+        // Формат URL: jdbc:postgresql://localhost:5432/dbname
+        String[] parts = dbUrl.split("/");
+        return parts[parts.length - 1];
+    }
+    
+    /**
+     * Пересоздает базу данных
+     */
+    private void recreateDatabase(String dbName, String username, String password) throws IOException {
+        try {
+            // 1. Подключаемся к postgres для удаления существующей БД
+            ProcessBuilder dropProcess = new ProcessBuilder(
+                "psql",
+                "-h", "localhost",
+                "-U", username,
+                "-d", "postgres",
+                "-c", "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='" + dbName + "'; DROP DATABASE IF EXISTS " + dbName
+            );
             
-            List<String> tableNames = new ArrayList<>();
-            while (rs.next()) {
-                tableNames.add(rs.getString("tablename"));
+            dropProcess.environment().put("PGPASSWORD", password);
+            Process process = dropProcess.start();
+            
+            if (process.waitFor() != 0) {
+                String errorOutput = new BufferedReader(new InputStreamReader(process.getErrorStream()))
+                    .lines().collect(Collectors.joining("\n"));
+                logger.warn("Предупреждение при удалении БД: {}", errorOutput);
             }
             
-            // Если нет таблиц, нечего очищать
-            if (tableNames.isEmpty()) {
-                logger.info("Нет таблиц для очистки");
-                return;
+            // 2. Создаем новую БД
+            ProcessBuilder createProcess = new ProcessBuilder(
+                "psql",
+                "-h", "localhost",
+                "-U", username,
+                "-d", "postgres",
+                "-c", "CREATE DATABASE " + dbName + " WITH OWNER " + username
+            );
+            
+            createProcess.environment().put("PGPASSWORD", password);
+            process = createProcess.start();
+            
+            if (process.waitFor() != 0) {
+                String errorOutput = new BufferedReader(new InputStreamReader(process.getErrorStream()))
+                    .lines().collect(Collectors.joining("\n"));
+                throw new IOException("Ошибка при создании БД: " + errorOutput);
             }
             
-            logger.info("Начинаем очистку таблиц: {}", tableNames);
-            
-            // Отключаем все ограничения на время операции (для PostgreSQL)
-            stmt.execute("SET session_replication_role = 'replica';");
-            
-            // Очищаем каждую таблицу
-            for (String tableName : tableNames) {
-                try {
-                    logger.debug("Очищаем таблицу: {}", tableName);
-                    stmt.execute("TRUNCATE TABLE " + tableName + " CASCADE;");
-                } catch (SQLException e) {
-                    logger.warn("Ошибка при очистке таблицы {}: {}", tableName, e.getMessage());
-                }
-            }
-            
-            // Включаем обратно все ограничения
-            stmt.execute("SET session_replication_role = 'origin';");
-            
-            logger.info("Очистка таблиц завершена");
+            logger.info("База данных {} успешно пересоздана", dbName);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Процесс пересоздания БД был прерван", e);
         }
     }
     
@@ -507,5 +517,22 @@ public class JdbcDatabaseBackupService {
             logger.error("Ошибка при удалении резервной копии: {}", e.getMessage(), e);
             throw e;
         }
+    }
+    
+    /**
+     * Проверяет существование резервной копии
+     */
+    public boolean backupExists(String backupName) {
+        String backupPath = backupDir + "/" + backupName;
+        File backupDirFile = new File(backupPath);
+        
+        if (!backupDirFile.exists() || !backupDirFile.isDirectory()) {
+            return false;
+        }
+        
+        File materialsBackup = new File(backupPath + "/materials_db.sql");
+        File usersBackup = new File(backupPath + "/users_db.sql");
+        
+        return materialsBackup.exists() && usersBackup.exists();
     }
 } 

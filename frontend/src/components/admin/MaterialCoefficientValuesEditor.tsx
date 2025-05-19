@@ -33,7 +33,13 @@ import {
   MaterialCoefficientValue 
 } from '../../types/material.types';
 import { getAllCoefficients } from '../../services/coefficientService';
-import { updateMaterial } from '../../services/materialService';
+import { 
+  updateMaterial, 
+  getMaterialCoefficients,
+  addMaterialCoefficient,
+  updateMaterialCoefficient,
+  deleteMaterialCoefficient
+} from '../../services/materialService';
 
 interface MaterialCoefficientValuesEditorProps {
   material: Material;
@@ -125,31 +131,35 @@ const MaterialCoefficientValuesEditor: React.FC<MaterialCoefficientValuesEditorP
         cv => cv.coefficient.id === selectedCoefficient
       );
 
-      const updatedCoefficientValues = [...coefficientValues];
-
+      let updatedCoefficientValue;
+      
       if (existingCoefficientIndex >= 0) {
         // Если коэффициент уже существует, обновляем его значение
-        updatedCoefficientValues[existingCoefficientIndex] = {
-          ...updatedCoefficientValues[existingCoefficientIndex],
-          coefficientValue: Number(coefficientValue)
-        };
+        updatedCoefficientValue = await updateMaterialCoefficient(
+          material.id,
+          selectedCoefficient,
+          Number(coefficientValue)
+        );
+        
+        const updatedCoefficientValues = [...coefficientValues];
+        updatedCoefficientValues[existingCoefficientIndex] = updatedCoefficientValue;
+        setCoefficientValues(updatedCoefficientValues);
       } else {
         // Иначе добавляем новый коэффициент
-        updatedCoefficientValues.push({
-          coefficient: selectedCoefficientObj,
-          coefficientValue: Number(coefficientValue)
-        });
+        updatedCoefficientValue = await addMaterialCoefficient(
+          material.id,
+          selectedCoefficient,
+          Number(coefficientValue)
+        );
+        
+        setCoefficientValues([...coefficientValues, updatedCoefficientValue]);
       }
 
-      setCoefficientValues(updatedCoefficientValues);
-
-      // Обновляем материал
+      // Обновляем материал в родительском компоненте
       const updatedMaterial = {
         ...material,
-        coefficientValues: updatedCoefficientValues
+        coefficientValues: await getMaterialCoefficients(material.id)
       };
-
-      await updateMaterial(material.id, updatedMaterial);
       onSave(updatedMaterial);
 
       handleClose();
@@ -171,19 +181,20 @@ const MaterialCoefficientValuesEditor: React.FC<MaterialCoefficientValuesEditorP
     }
 
     try {
+      // Удаляем значение коэффициента через API
+      await deleteMaterialCoefficient(material.id, coefficientId);
+      
+      // Обновляем локальный список коэффициентов
       const updatedCoefficientValues = coefficientValues.filter(
         cv => cv.coefficient.id !== coefficientId
       );
-
       setCoefficientValues(updatedCoefficientValues);
 
-      // Обновляем материал
+      // Обновляем материал в родительском компоненте
       const updatedMaterial = {
         ...material,
         coefficientValues: updatedCoefficientValues
       };
-
-      await updateMaterial(material.id, updatedMaterial);
       onSave(updatedMaterial);
     } catch (err) {
       console.error('Ошибка при удалении значения коэффициента:', err);

@@ -39,6 +39,19 @@ public class MaterialPropertyValue {
     @NotNull(message = "Значение свойства не может быть пустым")
     @Column(name = "property_value", nullable = false)
     private Double propertyValue;
+    
+    /**
+     * Создает новый объект MaterialPropertyValue и инициализирует составной ключ
+     * @param material материал
+     * @param property свойство
+     * @param propertyValue значение свойства
+     */
+    public MaterialPropertyValue(Material material, MaterialProperty property, Double propertyValue) {
+        this.material = material;
+        this.property = property;
+        this.propertyValue = propertyValue;
+        this.id = new MaterialPropertyValueId(material.getId(), property.getId());
+    }
 }
 
 @Embeddable

@@ -404,8 +404,8 @@ const SimulationPage: React.FC = () => {
     // Подготовка данных для таблицы результатов
     const tableData = result.positions.map((pos, index) => ({
       'Позиция (м)': pos,
-      'Температура (°C)': result.temperatures[index],
-      'Вязкость (Па·с)': result.viscosities[index]
+      'Температура (°C)': result.temperatures[index].toFixed(2),
+      'Вязкость (Па·с)': result.viscosities[index].toFixed(1)
     }));
 
     // Создание листа с результатами
@@ -415,12 +415,12 @@ const SimulationPage: React.FC = () => {
     // Подготовка данных для листа с показателями
     const totalPerformance = getTotalPerformance();
     const performanceData = [
-      { 'Показатель': 'Показатели экономичности', 'Значение': '' },
-      { 'Показатель': 'Общая производительность (кг/ч)', 'Значение': result.productivity },
-      { 'Показатель': 'Общая температура продукта (°C)', 'Значение': result.finalTemperature },
-      { 'Показатель': 'Общая вязкость продукта (Па·с)', 'Значение': result.finalViscosity },
+      { 'Показатель': 'Критериальные показатели', 'Значение': '' },
+      { 'Показатель': 'Общая производительность (кг/ч)', 'Значение': result.productivity.toFixed(1) },
+      { 'Показатель': 'Общая температура продукта (°C)', 'Значение': result.finalTemperature.toFixed(1) },
+      { 'Показатель': 'Общая вязкость продукта (Па·с)', 'Значение': result.finalViscosity.toFixed(1) },
       { 'Показатель': '', 'Значение': '' },
-      { 'Показатель': 'Показатели производительности', 'Значение': '' },
+      { 'Показатель': 'Показатели экономичности', 'Значение': '' },
       { 'Показатель': 'Общее время расчета (мс)', 'Значение': totalPerformance.totalTime.toFixed(2) },
       { 'Показатель': 'Время расчета на сервере (мс)', 'Значение': result.calculationTime },
       { 'Показатель': 'Время визуализации на клиенте (мс)', 'Значение': Number(clientPerformance.renderTime.toFixed(2)) },
@@ -1298,7 +1298,8 @@ const SimulationPage: React.FC = () => {
                       mb: 2
                     }}
                   >
-                    Показатели экономичности
+                    Критериальные показатели
+
                   </Typography>
                   <Grid container spacing={3}>
                     <Grid item xs={12} md={4}>
@@ -1443,7 +1444,7 @@ const SimulationPage: React.FC = () => {
                       mb: 2
                     }}
                   >
-                    Показатели производительности
+                    Показатели экономичности
                   </Typography>
                   <Grid container spacing={3}>
                     <Grid item xs={12} md={4}>
