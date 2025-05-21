@@ -64,8 +64,8 @@ CREATE TABLE public.users (
 --
 
 COPY public.roles (id, name, created_at) FROM stdin;
-f6170b8c-0d15-43cd-bc03-0fb4fe6d7be0	ADMIN	2025-05-14 23:58:43.336489
-ab6cc950-82f6-4d30-aa02-e96b8d669bc6	USER	2025-05-14 23:58:59.191017
+1b3c2a4d-5e6f-4a8b-9c0d-1e2f3a4b5c6d	ADMIN	2025-05-15 13:14:09.829829
+2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f	USER	2025-05-15 13:14:09.829829
 \.
 
 
@@ -74,8 +74,8 @@ ab6cc950-82f6-4d30-aa02-e96b8d669bc6	USER	2025-05-14 23:58:59.191017
 --
 
 COPY public.users (id, username, password_hash, role_id, created_at) FROM stdin;
-0c953231-65ef-4396-832f-ee5e761835d3	admin	$2a$10$2feWgkwvTPGWnxKTrYRVZOFPNsvQviLm5hyiPaun3C55aidKKRx2G	f6170b8c-0d15-43cd-bc03-0fb4fe6d7be0	2025-05-14 23:58:43.34149
-7cc50884-a16e-41f8-8bf2-d67132057566	maksim	$2a$10$jd8Z7EWS7gX.zB8TgdU25uYBMfBChrCGOY2UPZUwa5o0DNXQeM3Ny	ab6cc950-82f6-4d30-aa02-e96b8d669bc6	2025-05-14 23:58:59.194018
+6740dacc-35ee-4510-9e56-0de785251a5c	admin	$2a$10$DhtsZnQIBmOqJ/rHweH48e2bm99tnvC3wUgASs1WoHa/cONi1Bwm.	1b3c2a4d-5e6f-4a8b-9c0d-1e2f3a4b5c6d	2025-05-15 16:15:55.241028
+05b9d1de-77dc-4ed9-85a5-9ce403e66c6f	nikita	$2a$10$hyAJCDWTy0v7p0/S0nzDhu6/HVHv1yCxv9RcFRoIx5KHymUtcW51W	2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f	2025-05-15 16:54:36.97928
 \.
 
 

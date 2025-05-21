@@ -105,29 +105,6 @@ CREATE TABLE public.materials (
 
 
 --
--- Name: roles; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.roles (
-    id uuid NOT NULL,
-    name character varying(50) NOT NULL
-);
-
-
---
--- Name: users; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.users (
-    id uuid NOT NULL,
-    username character varying(150) NOT NULL,
-    password_hash character varying(255) NOT NULL,
-    role_id uuid NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
-
-
---
 -- Data for Name: empirical_coefficients; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -186,9 +163,10 @@ a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11	c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16	150
 b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12	c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16	100
 a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11	d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17	230
 b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12	d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17	180
-7dc29a0f-bfe4-40a6-864d-10ae6d8aa8d9	a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14	1
-7dc29a0f-bfe4-40a6-864d-10ae6d8aa8d9	b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15	1
-7dc29a0f-bfe4-40a6-864d-10ae6d8aa8d9	d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17	1
+c9bcdf99-b6db-4e8a-891b-1e0b444231bb	a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14	12
+c9bcdf99-b6db-4e8a-891b-1e0b444231bb	b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15	12
+c9bcdf99-b6db-4e8a-891b-1e0b444231bb	c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16	43
+c9bcdf99-b6db-4e8a-891b-1e0b444231bb	d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17	46
 \.
 
 
@@ -199,23 +177,7 @@ b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12	d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17	180
 COPY public.materials (id_material, name, material_type) FROM stdin;
 a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11	Поликарбонат	23ERT78
 b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12	Полипропилен	HFRT56
-7dc29a0f-bfe4-40a6-864d-10ae6d8aa8d9	888	888
-\.
-
-
---
--- Data for Name: roles; Type: TABLE DATA; Schema: public; Owner: -
---
-
-COPY public.roles (id, name) FROM stdin;
-\.
-
-
---
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
---
-
-COPY public.users (id, username, password_hash, role_id, created_at) FROM stdin;
+c9bcdf99-b6db-4e8a-891b-1e0b444231bb	12	12
 \.
 
 
@@ -257,38 +219,6 @@ ALTER TABLE ONLY public.material_property
 
 ALTER TABLE ONLY public.materials
     ADD CONSTRAINT materials_pkey PRIMARY KEY (id_material);
-
-
---
--- Name: roles roles_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.roles
-    ADD CONSTRAINT roles_name_key UNIQUE (name);
-
-
---
--- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.roles
-    ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
-
-
---
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
-
-
---
--- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_username_key UNIQUE (username);
 
 
 --
@@ -349,14 +279,6 @@ ALTER TABLE ONLY public.material_property
 
 ALTER TABLE ONLY public.material_property
     ADD CONSTRAINT material_property_id_property_fkey FOREIGN KEY (id_property) REFERENCES public.material_properties(id_property) ON DELETE CASCADE;
-
-
---
--- Name: users users_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(id);
 
 
 --

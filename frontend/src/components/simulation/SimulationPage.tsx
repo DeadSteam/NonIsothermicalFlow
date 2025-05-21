@@ -160,6 +160,12 @@ const SimulationPage: React.FC = () => {
             material.propertyValues.forEach(pv => {
               const propName = pv.property.propertyName.toLowerCase();
               
+              // Проверяем, что значение не пустое и не равно нулю прежде чем назначить
+              const propertyValue = Number(pv.propertyValue);
+              if (isNaN(propertyValue) || propertyValue === 0) {
+                return; // Пропускаем свойство, если оно не числовое или равно нулю
+              }
+              
               if (propName.includes('плотность')) {
                 newModel.density = pv.propertyValue;
               } else if (propName.includes('теплоемкость')) {
@@ -176,6 +182,12 @@ const SimulationPage: React.FC = () => {
           if (material.coefficientValues && material.coefficientValues.length > 0) {
             material.coefficientValues.forEach(cv => {
               const coefName = cv.coefficient.coefficientName.toLowerCase();
+              
+              // Проверяем, что значение не пустое и не равно нулю прежде чем назначить
+              const coefficientValue = Number(cv.coefficientValue);
+              if (isNaN(coefficientValue) || coefficientValue === 0) {
+                return; // Пропускаем коэффициент, если он не числовой или равен нулю
+              }
               
               if (coefName.includes('консистенции')) {
                 newModel.mu0 = cv.coefficientValue;
@@ -280,28 +292,28 @@ const SimulationPage: React.FC = () => {
   const validateField = (name: string, value: any): string | null => {
     // Преобразуем значение в строку для проверки
     const strValue = String(value);
+    const numValue = strValue && strValue !== '.' && strValue !== ',' ? Number(strValue.replace(',', '.')) : 0;
     
-    // Поля, которые всегда должны быть заполнены
+    // Поля, которые всегда должны быть заполнены и не могут быть нулевыми
     const requiredFields = ['width', 'depth', 'length', 'coverSpeed', 'coverTemp', 'step'];
     
-    // Если это обязательное поле и оно пустое
-    if (requiredFields.includes(name) && (strValue === '' || strValue === '.' || strValue === ',')) {
-      return 'Поле обязательно для заполнения';
+    // Если это обязательное поле и оно пустое или равно нулю
+    if (requiredFields.includes(name) && (strValue === '' || strValue === '.' || strValue === ',' || numValue === 0)) {
+      return 'Поле обязательно для заполнения и не может быть равно нулю';
     }
 
-    // Для свойств материала и коэффициентов предупреждаем, но не блокируем расчет
-    const optionalFields = ['density', 'heatCapacity', 'glassTransitionTemp', 'meltingTemp', 
+    // Для свойств материала и коэффициентов проверяем и выдаем ошибку для пустых и нулевых значений
+    const materialFields = ['density', 'heatCapacity', 'glassTransitionTemp', 'meltingTemp', 
                            'mu0', 'firstConstantVLF', 'secondConstantVLF', 'castingTemp', 
                            'flowIndex', 'heatTransfer'];
     
-    // Если это необязательное поле и оно пустое - это допустимо
-    if (optionalFields.includes(name) && (strValue === '' || strValue === '.' || strValue === ',')) {
-      return null;
+    // Теперь для полей материала также считаем пустые и нулевые значения ошибкой
+    if (materialFields.includes(name) && (strValue === '' || strValue === '.' || strValue === ',' || numValue === 0)) {
+      return 'Значение не может быть пустым или равным нулю';
     }
     
     // Для поля количества пропусков шагов
     if (name === 'displayStep') {
-      const numValue = Number(strValue);
       if (!Number.isInteger(numValue) || numValue < 0) {
         return 'Должно быть целым неотрицательным числом';
       }
@@ -321,24 +333,14 @@ const SimulationPage: React.FC = () => {
   const validateAllFields = (): boolean => {
     const newFieldErrors: FieldErrors = {};
     let hasErrors = false;
-    let missingOptionalFields = false;
 
     // Проверяем все поля модели
     Object.entries(model).forEach(([fieldName, value]) => {
+      // Проверяем поле на ошибки
       const error = validateField(fieldName, value);
       if (error) {
         newFieldErrors[fieldName] = error;
         hasErrors = true;
-      }
-
-      // Проверяем, есть ли пустые поля свойств и коэффициентов
-      const optionalFields = ['density', 'heatCapacity', 'glassTransitionTemp', 'meltingTemp', 
-                             'mu0', 'firstConstantVLF', 'secondConstantVLF', 'castingTemp', 
-                             'flowIndex', 'heatTransfer'];
-      
-      if (optionalFields.includes(fieldName) && 
-          (value === '' || value === '.' || value === ',' || value === 0)) {
-        missingOptionalFields = true;
       }
     });
 
@@ -349,21 +351,38 @@ const SimulationPage: React.FC = () => {
       return false;
     }
     
-    if (missingOptionalFields) {
-      // Предупреждаем, но не блокируем расчет
-      setError('Предупреждение: Некоторые свойства материала или коэффициенты не заданы. ' +
-               'Расчет может быть неточным или не сойтись. Продолжить?');
-    } else {
-      setError(null);
-    }
+    // Если ошибок нет, очищаем сообщение об ошибке
+    setError(null);
     
     return true;
   };
 
-  // Обновляем обработчик запуска симуляции
+  // Обработчик запуска симуляции
   const handleRunSimulation = async () => {
     // Сначала проверяем все поля
     if (!validateAllFields()) {
+      return;
+    }
+    
+    // Дополнительная проверка на наличие пустых или нулевых значений
+    const hasEmptyOrZero = Object.entries(model).some(([fieldName, value]) => {
+      // Преобразуем значение в число
+      const strValue = String(value);
+      const numValue = strValue && strValue !== '.' && strValue !== ',' 
+        ? Number(strValue.replace(',', '.')) 
+        : 0;
+      
+      // Для поля displayStep разрешаем значение 0
+      if (fieldName === 'displayStep' && numValue === 0) {
+        return false;
+      }
+      
+      // Проверяем, не равно ли значение нулю или пустому значению
+      return strValue === '' || strValue === '.' || strValue === ',' || numValue === 0;
+    });
+    
+    if (hasEmptyOrZero) {
+      setError('Невозможно запустить расчет: есть пустые поля или поля со значением 0');
       return;
     }
 
@@ -383,17 +402,17 @@ const SimulationPage: React.FC = () => {
         step: Number(String(model.step).replace(',', '.')),
         displayStep: Number(model.displayStep),
         
-        // Необязательные поля - преобразуем пустые значения в нули
-        density: model.density === '' ? 0 : Number(String(model.density).replace(',', '.')),
-        heatCapacity: model.heatCapacity === '' ? 0 : Number(String(model.heatCapacity).replace(',', '.')),
-        glassTransitionTemp: model.glassTransitionTemp === '' ? 0 : Number(String(model.glassTransitionTemp).replace(',', '.')),
-        meltingTemp: model.meltingTemp === '' ? 0 : Number(String(model.meltingTemp).replace(',', '.')),
-        mu0: model.mu0 === '' ? 0 : Number(String(model.mu0).replace(',', '.')),
-        firstConstantVLF: model.firstConstantVLF === '' ? 0 : Number(String(model.firstConstantVLF).replace(',', '.')),
-        secondConstantVLF: model.secondConstantVLF === '' ? 0 : Number(String(model.secondConstantVLF).replace(',', '.')),
-        castingTemp: model.castingTemp === '' ? 0 : Number(String(model.castingTemp).replace(',', '.')),
-        flowIndex: model.flowIndex === '' ? 0 : Number(String(model.flowIndex).replace(',', '.')),
-        heatTransfer: model.heatTransfer === '' ? 0 : Number(String(model.heatTransfer).replace(',', '.'))
+        // Теперь все поля обязательны и не могут быть нулевыми
+        density: Number(String(model.density).replace(',', '.')),
+        heatCapacity: Number(String(model.heatCapacity).replace(',', '.')),
+        glassTransitionTemp: Number(String(model.glassTransitionTemp).replace(',', '.')),
+        meltingTemp: Number(String(model.meltingTemp).replace(',', '.')),
+        mu0: Number(String(model.mu0).replace(',', '.')),
+        firstConstantVLF: Number(String(model.firstConstantVLF).replace(',', '.')),
+        secondConstantVLF: Number(String(model.secondConstantVLF).replace(',', '.')),
+        castingTemp: Number(String(model.castingTemp).replace(',', '.')),
+        flowIndex: Number(String(model.flowIndex).replace(',', '.')),
+        heatTransfer: Number(String(model.heatTransfer).replace(',', '.'))
       };
 
       const simulationResult = await runSimulation(normalizedModel);
@@ -459,7 +478,7 @@ const SimulationPage: React.FC = () => {
     
     // Подготовка данных для таблицы результатов
     const tableData = result.positions.map((pos, index) => ({
-      'Позиция (м)': pos,
+      'Координата по длине канала (м)': pos,
       'Температура (°C)': result.temperatures[index].toFixed(2),
       'Вязкость (Па·с)': result.viscosities[index].toFixed(1)
     }));
@@ -875,7 +894,7 @@ const SimulationPage: React.FC = () => {
             textShadow: '0px 1px 2px rgba(0,0,0,0.1)'
           }}
         >
-          Течения аномально вязких материалов в канале
+          Моделирование течения аномально вязких материалов в канале
         </Typography>
 
         <Grid container spacing={4}>
