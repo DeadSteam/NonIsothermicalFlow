@@ -10,6 +10,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.beans.factory.annotation.Value;
 import javax.sql.DataSource;
 import java.util.HashMap;
 
@@ -21,14 +22,26 @@ import java.util.HashMap;
 )
 public class DatabaseConfig {
 
+    @Value("${spring.datasource.materials.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.materials.username}")
+    private String dbUsername;
+
+    @Value("${spring.datasource.materials.password}")
+    private String dbPassword;
+
+    @Value("${spring.datasource.materials.driver-class-name}")
+    private String driverClassName;
+
     @Primary
     @Bean(name = "materialsDataSource")
     public DataSource materialsDataSource() {
         return DataSourceBuilder.create()
-                .url("jdbc:postgresql://localhost:5432/materials_db")
-                .username("postgres")
-                .password("Akrawer1")
-                .driverClassName("org.postgresql.Driver")
+                .url(dbUrl)
+                .username(dbUsername)
+                .password(dbPassword)
+                .driverClassName(driverClassName)
                 .build();
     }
 

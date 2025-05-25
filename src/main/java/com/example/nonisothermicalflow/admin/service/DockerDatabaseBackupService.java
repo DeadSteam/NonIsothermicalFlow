@@ -101,11 +101,11 @@ public class DockerDatabaseBackupService {
         try {
             // Создаем резервную копию для базы данных materials
             log.info("Начинаем создание бэкапа базы данных materials_db");
-            createBackupForDatabase("postgres-materials-container", "materials_db", "postgres", "Akrawer1", createdBackups);
+            createBackupForDatabase("postgres-materials", "materials_db", "postgres", "Akrawer1", createdBackups);
             
             // Создаем резервную копию для базы данных users
             log.info("Начинаем создание бэкапа базы данных users_db");
-            createBackupForDatabase("postgres-users-container", "users_db", "postgres", "Akrawer1", createdBackups);
+            createBackupForDatabase("postgres-users", "users_db", "postgres", "Akrawer1", createdBackups);
             
             return createdBackups;
         } catch (Exception e) {
@@ -173,9 +173,9 @@ public class DockerDatabaseBackupService {
         String password = "Akrawer1";
         
         if (database.equals("materials_db")) {
-            containerName = "postgres-materials-container";
+            containerName = "postgres-materials";
         } else if (database.equals("users_db")) {
-            containerName = "postgres-users-container";
+            containerName = "postgres-users";
         } else {
             throw new IllegalArgumentException("Неизвестная база данных: " + database);
         }

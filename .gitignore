@@ -40,3 +40,7 @@ out/
 docker/data/postgres-materials-data/
 docker/data/postgres-users-data/
 !docker/data/dumps/
+
+
+.cursorignore
+.cursorrules

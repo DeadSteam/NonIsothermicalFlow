@@ -2,13 +2,12 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 17.4 (Debian 17.4-1.pgdg120+2)
--- Dumped by pg_dump version 17.4 (Debian 17.4-1.pgdg120+2)
+-- Dumped from database version 16.9
+-- Dumped by pg_dump version 16.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -16,20 +15,6 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
-
---
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
-
-
---
--- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON SCHEMA public IS '';
-
 
 --
 -- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
@@ -163,10 +148,6 @@ a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11	c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16	150
 b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12	c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16	100
 a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11	d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17	230
 b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12	d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17	180
-c9bcdf99-b6db-4e8a-891b-1e0b444231bb	a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14	12
-c9bcdf99-b6db-4e8a-891b-1e0b444231bb	b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15	12
-c9bcdf99-b6db-4e8a-891b-1e0b444231bb	c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16	43
-c9bcdf99-b6db-4e8a-891b-1e0b444231bb	d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17	46
 \.
 
 
@@ -177,7 +158,6 @@ c9bcdf99-b6db-4e8a-891b-1e0b444231bb	d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17	46
 COPY public.materials (id_material, name, material_type) FROM stdin;
 a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11	Поликарбонат	23ERT78
 b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12	Полипропилен	HFRT56
-c9bcdf99-b6db-4e8a-891b-1e0b444231bb	12	12
 \.
 
 

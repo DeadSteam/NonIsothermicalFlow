@@ -9,6 +9,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.beans.factory.annotation.Value;
 import javax.sql.DataSource;
 import java.util.HashMap;
 
@@ -20,13 +21,25 @@ import java.util.HashMap;
 )
 public class UsersDatabaseConfig {
 
+    @Value("${spring.datasource.users.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.users.username}")
+    private String dbUsername;
+
+    @Value("${spring.datasource.users.password}")
+    private String dbPassword;
+
+    @Value("${spring.datasource.users.driver-class-name}")
+    private String driverClassName;
+
     @Bean(name = "usersDataSource")
     public DataSource usersDataSource() {
         return DataSourceBuilder.create()
-                .url("jdbc:postgresql://localhost:5433/users_db")
-                .username("postgres")
-                .password("Akrawer1")
-                .driverClassName("org.postgresql.Driver")
+                .url(dbUrl)
+                .username(dbUsername)
+                .password(dbPassword)
+                .driverClassName(driverClassName)
                 .build();
     }
 

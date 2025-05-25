@@ -2,13 +2,12 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 17.4 (Debian 17.4-1.pgdg120+2)
--- Dumped by pg_dump version 17.4 (Debian 17.4-1.pgdg120+2)
+-- Dumped from database version 16.9
+-- Dumped by pg_dump version 16.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -64,8 +63,8 @@ CREATE TABLE public.users (
 --
 
 COPY public.roles (id, name, created_at) FROM stdin;
-1b3c2a4d-5e6f-4a8b-9c0d-1e2f3a4b5c6d	ADMIN	2025-05-15 13:14:09.829829
-2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f	USER	2025-05-15 13:14:09.829829
+1b3c2a4d-5e6f-4a8b-9c0d-1e2f3a4b5c6d	ADMIN	2025-05-25 22:47:48.273058
+2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f	USER	2025-05-25 22:47:48.273058
 \.
 
 
@@ -74,8 +73,7 @@ COPY public.roles (id, name, created_at) FROM stdin;
 --
 
 COPY public.users (id, username, password_hash, role_id, created_at) FROM stdin;
-6740dacc-35ee-4510-9e56-0de785251a5c	admin	$2a$10$DhtsZnQIBmOqJ/rHweH48e2bm99tnvC3wUgASs1WoHa/cONi1Bwm.	1b3c2a4d-5e6f-4a8b-9c0d-1e2f3a4b5c6d	2025-05-15 16:15:55.241028
-05b9d1de-77dc-4ed9-85a5-9ce403e66c6f	nikita	$2a$10$hyAJCDWTy0v7p0/S0nzDhu6/HVHv1yCxv9RcFRoIx5KHymUtcW51W	2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f	2025-05-15 16:54:36.97928
+d8a320dd-4446-444b-ba38-5678f3234533	admin	$2a$10$R9FD0qbirt/LszO9g7Petu6BvXXh8rMi9wTd3Ew5Xf0Vm8WGU3lx.	1b3c2a4d-5e6f-4a8b-9c0d-1e2f3a4b5c6d	2025-05-25 22:48:03.347445
 \.
 
 
