@@ -2,7 +2,7 @@ import axios from 'axios';
 import { User, JwtResponse } from '../../types/User';
 
 // API URL for backend connection
-const API_URL = process.env.REACT_APP_API_URL || (window.location.hostname === 'localhost' ? '/api' : `http://${window.location.hostname}/api`);
+const API_URL = process.env.REACT_APP_API_URL || (window.location.hostname === 'localhost' ? '/api' : `${window.location.protocol}//${window.location.hostname}/api`);
 
 // Create axios instance
 const api = axios.create({
