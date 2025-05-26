@@ -74,7 +74,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "wget", "--spider", "http://localhost:8080/api/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 5
