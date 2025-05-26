@@ -1,12 +1,10 @@
 import axios from 'axios';
 import { User, JwtResponse } from '../../types/User';
-
-// API URL for backend connection
-const API_URL = process.env.REACT_APP_API_URL || (window.location.hostname === 'localhost' ? '/api' : `${window.location.protocol}//${window.location.hostname}/api`);
+import { API_CONFIG } from '../../config/api.config';
 
 // Create axios instance
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_CONFIG.BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -41,7 +39,7 @@ api.interceptors.response.use(
 export const authService = {
   login: async (username: string, password: string): Promise<User> => {
     try {
-      const response = await api.post<JwtResponse>('/api/auth/login', { username, password });
+      const response = await api.post<JwtResponse>(`${API_CONFIG.API_VERSION}/auth/login`, { username, password });
       
       // Преобразуем ответ с сервера в формат, используемый на клиенте
       const userData: User = {
@@ -62,10 +60,7 @@ export const authService = {
   
   signup: async (username: string, password: string): Promise<User> => {
     try {
-      // Регистрация пользователя
-      await api.post('/api/auth/register', { username, password });
-      
-      // После успешной регистрации выполняем вход
+      await api.post(`${API_CONFIG.API_VERSION}/auth/register`, { username, password });
       return await authService.login(username, password);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
@@ -77,7 +72,7 @@ export const authService = {
 
   getCurrentUser: async (): Promise<User> => {
     try {
-      const response = await api.get('/users/me');
+      const response = await api.get(`${API_CONFIG.API_VERSION}/users/me`);
       
       // Получаем текущего пользователя из localStorage для получения токена
       const userStr = localStorage.getItem('user');
@@ -108,7 +103,7 @@ export const authService = {
 export const userService = {
   getAllUsers: async (): Promise<User[]> => {
     try {
-      const response = await api.get('/users');
+      const response = await api.get(`${API_CONFIG.API_VERSION}/users`);
       return response.data.map((user: any) => ({
         id: user.id,
         username: user.username,
@@ -124,7 +119,7 @@ export const userService = {
   
   getUserById: async (id: string): Promise<User> => {
     try {
-      const response = await api.get(`/users/${id}`);
+      const response = await api.get(`${API_CONFIG.API_VERSION}/users/${id}`);
       return {
         id: response.data.id,
         username: response.data.username,
@@ -140,7 +135,7 @@ export const userService = {
   
   createUser: async (username: string, password: string, role: string): Promise<User> => {
     try {
-      const response = await api.post('/users', { 
+      const response = await api.post(`${API_CONFIG.API_VERSION}/users`, { 
         username, 
         password,
         roleName: role
@@ -166,7 +161,7 @@ export const userService = {
       if (password) requestData.password = password;
       if (role) requestData.roleName = role;
 
-      const response = await api.put(`/users/${id}`, requestData);
+      const response = await api.put(`${API_CONFIG.API_VERSION}/users/${id}`, requestData);
       return {
         id: response.data.id,
         username: response.data.username,
@@ -182,7 +177,7 @@ export const userService = {
   
   deleteUser: async (id: string): Promise<void> => {
     try {
-      await api.delete(`/users/${id}`);
+      await api.delete(`${API_CONFIG.API_VERSION}/users/${id}`);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(error.response.data.message || 'Ошибка удаления пользователя');

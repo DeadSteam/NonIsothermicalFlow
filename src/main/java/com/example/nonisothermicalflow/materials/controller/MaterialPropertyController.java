@@ -15,7 +15,7 @@ import java.util.UUID;
  * Контроллер для API работы со свойствами материалов
  */
 @RestController
-@RequestMapping("/api/material-properties")
+@RequestMapping("/api/v1/material-properties")
 @RequiredArgsConstructor
 public class MaterialPropertyController {
 

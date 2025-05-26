@@ -16,7 +16,7 @@ import java.util.UUID;
  * Контроллер для API работы со значениями эмпирических коэффициентов материалов
  */
 @RestController
-@RequestMapping("/api/material-coefficient-values")
+@RequestMapping("/api/v1/material-coefficient-values")
 @RequiredArgsConstructor
 public class MaterialCoefficientValueController {
 

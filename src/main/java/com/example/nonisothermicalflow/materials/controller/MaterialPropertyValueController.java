@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/material-properties")
+@RequestMapping("/api/v1/material-properties")
 @RequiredArgsConstructor
 public class MaterialPropertyValueController {
 

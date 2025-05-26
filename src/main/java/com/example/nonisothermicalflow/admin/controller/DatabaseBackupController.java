@@ -20,7 +20,7 @@ import java.util.UUID;
  * REST контроллер для API управления резервными копиями баз данных
  */
 @RestController
-@RequestMapping("/api/admin/backups")
+@RequestMapping("/api/v1/admin/backups")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Slf4j

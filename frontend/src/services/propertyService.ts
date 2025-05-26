@@ -28,25 +28,25 @@ propertyApi.interceptors.request.use((config) => {
 });
 
 export const getAllProperties = async (): Promise<MaterialProperty[]> => {
-  const response = await propertyApi.get(getApiUrl('/material-properties').replace('/v1', ''));
+  const response = await propertyApi.get(getApiUrl('/material-properties'));
   return response.data;
 };
 
 export const getPropertyById = async (id: string): Promise<MaterialProperty> => {
-  const response = await propertyApi.get(getApiUrl(`/material-properties/${id}`).replace('/v1', ''));
+  const response = await propertyApi.get(getApiUrl(`/material-properties/${id}`));
   return response.data;
 };
 
 export const createProperty = async (property: Omit<MaterialProperty, 'id'>): Promise<MaterialProperty> => {
-  const response = await propertyApi.post(getApiUrl('/material-properties').replace('/v1', ''), property);
+  const response = await propertyApi.post(getApiUrl('/material-properties'), property);
   return response.data;
 };
 
 export const updateProperty = async (id: string, property: Partial<MaterialProperty>): Promise<MaterialProperty> => {
-  const response = await propertyApi.put(getApiUrl(`/material-properties/${id}`).replace('/v1', ''), property);
+  const response = await propertyApi.put(getApiUrl(`/material-properties/${id}`), property);
   return response.data;
 };
 
 export const deleteProperty = async (id: string): Promise<void> => {
-  await propertyApi.delete(getApiUrl(`/material-properties/${id}`).replace('/v1', ''));
+  await propertyApi.delete(getApiUrl(`/material-properties/${id}`));
 }; 
