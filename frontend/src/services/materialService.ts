@@ -27,8 +27,15 @@ materialApi.interceptors.request.use((config) => {
 });
 
 export const getAllMaterials = async (): Promise<Material[]> => {
-  const response = await materialApi.get(getApiUrl('/materials'));
-  return response.data;
+  try {
+    console.log('Запрос списка материалов');
+    const response = await materialApi.get(getApiUrl('/materials'));
+    console.log('Ответ от сервера:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Ошибка при получении списка материалов:', error);
+    throw error;
+  }
 };
 
 export const getMaterialById = async (id: string): Promise<Material> => {
