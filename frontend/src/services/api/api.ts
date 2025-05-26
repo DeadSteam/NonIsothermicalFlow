@@ -2,7 +2,7 @@ import axios from 'axios';
 import { User, JwtResponse } from '../../types/User';
 
 // API URL for backend connection
-const API_URL = process.env.REACT_APP_API_URL || '/api';
+const API_URL = process.env.REACT_APP_API_URL || (window.location.hostname === 'localhost' ? '/api' : `http://${window.location.hostname}/api`);
 
 // Create axios instance
 const api = axios.create({
@@ -41,7 +41,7 @@ api.interceptors.response.use(
 export const authService = {
   login: async (username: string, password: string): Promise<User> => {
     try {
-      const response = await api.post<JwtResponse>('/auth/login', { username, password });
+      const response = await api.post<JwtResponse>('/api/auth/login', { username, password });
       
       // Преобразуем ответ с сервера в формат, используемый на клиенте
       const userData: User = {
@@ -63,7 +63,7 @@ export const authService = {
   signup: async (username: string, password: string): Promise<User> => {
     try {
       // Регистрация пользователя
-      await api.post('/auth/register', { username, password });
+      await api.post('/api/auth/register', { username, password });
       
       // После успешной регистрации выполняем вход
       return await authService.login(username, password);
