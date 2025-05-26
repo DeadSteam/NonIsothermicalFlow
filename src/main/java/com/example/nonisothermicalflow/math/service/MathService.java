@@ -35,7 +35,6 @@ public class MathService {
         
         // Запустим сборщик мусора перед измерениями
         System.gc();
-        System.runFinalization();
         
         // Получаем доступ к данным о памяти через MXBean API
         MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
@@ -137,9 +136,8 @@ public class MathService {
         // Завершение измерения времени расчета
         long calculationTime = System.currentTimeMillis() - startTime;
         
-        // Измерение использованной памяти с помощью MXBean
-        System.gc(); 
-        System.runFinalization();
+        // Очищаем память
+        System.gc();
         
         MemoryUsage heapUsageAfter = memoryBean.getHeapMemoryUsage();
         MemoryUsage nonHeapUsageAfter = memoryBean.getNonHeapMemoryUsage();

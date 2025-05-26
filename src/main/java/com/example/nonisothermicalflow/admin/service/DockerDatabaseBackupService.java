@@ -24,9 +24,9 @@ import java.util.stream.Collectors;
 /**
  * Сервис для управления резервными копиями базы данных с использованием Docker
  */
+@Slf4j
 @Service
 @Primary
-@Slf4j
 @RequiredArgsConstructor
 public class DockerDatabaseBackupService {
     
