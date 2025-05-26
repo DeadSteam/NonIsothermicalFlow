@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  BASE_URL: 'http://192.168.1.120:8080',
+  BASE_URL: window.location.origin,
   API_VERSION: '/api/v1'
 };
  
