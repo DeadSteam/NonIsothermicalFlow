@@ -33,9 +33,10 @@ public class JwtTokenProvider {
     @PostConstruct
     public void init() {
         try {
-            logger.info("Initializing JWT key");
-            this.key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-            logger.info("JWT key initialized successfully with secure key for HS512");
+            logger.info("Initializing JWT key from secret");
+            byte[] keyBytes = jwtSecret.getBytes();
+            this.key = Keys.hmacShaKeyFor(keyBytes);
+            logger.info("JWT key initialized successfully from secret");
         } catch (Exception e) {
             logger.error("Error initializing JWT key: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to initialize JWT key", e);

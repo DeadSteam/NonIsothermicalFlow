@@ -65,11 +65,14 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost",
             "http://localhost:80",
+            "http://localhost:8080",
             "http://88.201.220.74",
             "http://88.201.220.74:80",
+            "http://88.201.220.74:8080",
             "http://88.201.220.74:443",
             "https://88.201.220.74",
             "https://88.201.220.74:80",
+            "https://88.201.220.74:8080",
             "https://88.201.220.74:443"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
@@ -95,19 +98,18 @@ public class SecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/test/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/v1/materials/**").permitAll()
                 .requestMatchers("/api/v1/material-properties/**").permitAll()
                 .requestMatchers("/api/v1/material-coefficients/**").permitAll()
-                .requestMatchers("/api/material-coefficient-values/**").permitAll()
-                .requestMatchers("/api/material-properties/**").permitAll()
-                .requestMatchers("/api/math/**").permitAll()
+                .requestMatchers("/api/v1/material-coefficient-values/**").permitAll()
+                .requestMatchers("/api/v1/material-properties/**").permitAll()
                 .requestMatchers("/api/v1/math/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             );
 

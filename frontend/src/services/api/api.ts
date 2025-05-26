@@ -39,7 +39,7 @@ api.interceptors.response.use(
 export const authService = {
   login: async (username: string, password: string): Promise<User> => {
     try {
-      const response = await api.post<JwtResponse>(`${API_CONFIG.API_VERSION}/auth/login`, { username, password });
+      const response = await api.post<JwtResponse>('/auth/login', { username, password });
       
       // Преобразуем ответ с сервера в формат, используемый на клиенте
       const userData: User = {
@@ -60,7 +60,7 @@ export const authService = {
   
   signup: async (username: string, password: string): Promise<User> => {
     try {
-      await api.post(`${API_CONFIG.API_VERSION}/auth/register`, { username, password });
+      await api.post('/auth/register', { username, password });
       return await authService.login(username, password);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
@@ -72,7 +72,7 @@ export const authService = {
 
   getCurrentUser: async (): Promise<User> => {
     try {
-      const response = await api.get(`${API_CONFIG.API_VERSION}/users/me`);
+      const response = await api.get('/users/me');
       
       // Получаем текущего пользователя из localStorage для получения токена
       const userStr = localStorage.getItem('user');
@@ -103,7 +103,7 @@ export const authService = {
 export const userService = {
   getAllUsers: async (): Promise<User[]> => {
     try {
-      const response = await api.get(`${API_CONFIG.API_VERSION}/users`);
+      const response = await api.get('/users');
       return response.data.map((user: any) => ({
         id: user.id,
         username: user.username,
@@ -119,7 +119,7 @@ export const userService = {
   
   getUserById: async (id: string): Promise<User> => {
     try {
-      const response = await api.get(`${API_CONFIG.API_VERSION}/users/${id}`);
+      const response = await api.get(`/users/${id}`);
       return {
         id: response.data.id,
         username: response.data.username,
@@ -135,7 +135,7 @@ export const userService = {
   
   createUser: async (username: string, password: string, role: string): Promise<User> => {
     try {
-      const response = await api.post(`${API_CONFIG.API_VERSION}/users`, { 
+      const response = await api.post('/users', { 
         username, 
         password,
         roleName: role
@@ -161,7 +161,7 @@ export const userService = {
       if (password) requestData.password = password;
       if (role) requestData.roleName = role;
 
-      const response = await api.put(`${API_CONFIG.API_VERSION}/users/${id}`, requestData);
+      const response = await api.put(`/users/${id}`, requestData);
       return {
         id: response.data.id,
         username: response.data.username,
@@ -177,7 +177,7 @@ export const userService = {
   
   deleteUser: async (id: string): Promise<void> => {
     try {
-      await api.delete(`${API_CONFIG.API_VERSION}/users/${id}`);
+      await api.delete(`/users/${id}`);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(error.response.data.message || 'Ошибка удаления пользователя');
