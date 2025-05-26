@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  BASE_URL: window.location.origin,
+  BASE_URL: process.env.REACT_APP_API_URL || window.location.origin,
   API_VERSION: '/api/v1'
 };
  
