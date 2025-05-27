@@ -137,7 +137,7 @@ public class MathService {
         long calculationTime = System.currentTimeMillis() - startTime;
         
         // Очищаем память
-        System.gc();
+        System.gc(); 
         
         MemoryUsage heapUsageAfter = memoryBean.getHeapMemoryUsage();
         MemoryUsage nonHeapUsageAfter = memoryBean.getNonHeapMemoryUsage();

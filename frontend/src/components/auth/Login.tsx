@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Container, 
@@ -14,26 +14,35 @@ import { useAuth } from '../../context/AuthContext';
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, error, loading } = useAuth();
+  const { login, error, loading, user } = useAuth();
 
   // Получаем предыдущий маршрут, если есть
   const from = location.state?.from?.pathname || '/';
 
+  // Если пользователь уже авторизован, перенаправляем его
+  useEffect(() => {
+    if (user) {
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, from]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!username || !password) {
+    if (!username || !password || isSubmitting) {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       await login(username, password);
-      // После успешного входа перенаправляем на предыдущую страницу или на главную
-      navigate(from, { replace: true });
+      // После успешного входа перенаправление произойдет через useEffect
     } catch (err) {
-      console.error('Login failed', err);
+      console.error('Login failed:', err);
+      setIsSubmitting(false);
     }
   };
 
@@ -72,6 +81,7 @@ const Login: React.FC = () => {
             autoFocus
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            disabled={isSubmitting}
           />
           <TextField
             margin="normal"
@@ -84,6 +94,7 @@ const Login: React.FC = () => {
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            disabled={isSubmitting}
           />
 
           <Button
@@ -91,9 +102,9 @@ const Login: React.FC = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2, py: 1.5 }}
-            disabled={loading || !username || !password}
+            disabled={loading || isSubmitting || !username || !password}
           >
-            {loading ? <CircularProgress size={24} color="inherit" /> : 'Войти'}
+            {(loading || isSubmitting) ? <CircularProgress size={24} color="inherit" /> : 'Войти'}
           </Button>
 
           <Box sx={{ mt: 1, textAlign: 'center' }}>

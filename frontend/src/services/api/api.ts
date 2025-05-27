@@ -27,9 +27,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Если получаем 401 Unauthorized, очищаем localStorage и перенаправляем на страницу логина
+      // Если получаем 401 Unauthorized, только очищаем localStorage
       localStorage.removeItem('user');
-      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
@@ -39,7 +38,7 @@ api.interceptors.response.use(
 export const authService = {
   login: async (username: string, password: string): Promise<User> => {
     try {
-      const response = await api.post<JwtResponse>('/auth/login', { username, password });
+      const response = await api.post<JwtResponse>('/api/v1/auth/login', { username, password });
       
       // Преобразуем ответ с сервера в формат, используемый на клиенте
       const userData: User = {
@@ -60,7 +59,7 @@ export const authService = {
   
   signup: async (username: string, password: string): Promise<User> => {
     try {
-      await api.post('/auth/register', { username, password });
+      await api.post('/api/v1/auth/register', { username, password });
       return await authService.login(username, password);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
@@ -72,7 +71,7 @@ export const authService = {
 
   getCurrentUser: async (): Promise<User> => {
     try {
-      const response = await api.get('/users/me');
+      const response = await api.get('/api/v1/users/me');
       
       // Получаем текущего пользователя из localStorage для получения токена
       const userStr = localStorage.getItem('user');

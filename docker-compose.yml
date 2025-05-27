@@ -57,8 +57,8 @@ services:
       - USERS_DB_URL=jdbc:postgresql://postgres-users:5433/${POSTGRES_USERS_DB}
       - USERS_DB_USERNAME=${POSTGRES_USER}
       - USERS_DB_PASSWORD=${POSTGRES_PASSWORD}
-      - JWT_SECRET=myVerySecureSecretKeyForDevelopmentUseOnlyChangeInProduction
-      - JWT_EXPIRATION=86400000
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     ports:
@@ -73,6 +73,7 @@ services:
         condition: service_healthy
     networks:
       - app-network
+      - web
     healthcheck:
       test: ["CMD", "wget", "--spider", "http://localhost:8080/api/actuator/health"]
       interval: 10s
@@ -85,6 +86,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend
+    environment:
+      - REACT_APP_API_URL=http://${SERVER_HOST}/api/v1
     ports:
       - "80:80"
     depends_on:
@@ -92,6 +95,7 @@ services:
         condition: service_healthy
     networks:
       - app-network
+      - web
     healthcheck:
       test: ["CMD", "wget", "--spider", "http://localhost:80"]
       interval: 10s
@@ -101,6 +105,8 @@ services:
 networks:
   app-network:
     driver: bridge
+  web:
+    external: true
 
 volumes:
   postgres-materials-data:
