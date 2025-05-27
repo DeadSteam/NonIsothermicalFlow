@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # База данных материалов
   postgres-materials:
@@ -44,17 +46,15 @@ services:
 
   # Бэкенд
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: ./backend
     container_name: backend
     environment:
-      - MATERIALS_DB_URL=jdbc:postgresql://postgres-materials:5432/${POSTGRES_MATERIALS_DB}
-      - MATERIALS_DB_USERNAME=${POSTGRES_USER}
-      - MATERIALS_DB_PASSWORD=${POSTGRES_PASSWORD}
-      - USERS_DB_URL=jdbc:postgresql://postgres-users:5433/${POSTGRES_USERS_DB}
-      - USERS_DB_USERNAME=${POSTGRES_USER}
-      - USERS_DB_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-materials:5432/materials_db
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_SECOND_DATASOURCE_URL=jdbc:postgresql://postgres-users:5433/users_db
+      - SPRING_SECOND_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_SECOND_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - ADMIN_USERNAME=${ADMIN_USERNAME}
@@ -73,19 +73,17 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost:8080/api/actuator/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   # Фронтенд
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    build: ./frontend
     container_name: frontend
     expose:
-      - "3000"
+      - "80:80"
     depends_on:
       backend:
         condition: service_healthy

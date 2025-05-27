@@ -20,26 +20,6 @@ ENV REACT_APP_API_URL=$REACT_APP_API_URL
 # Собираем приложение
 RUN npm run build
 
-# Production stage
-FROM node:18-alpine
-
-# Устанавливаем serve
-RUN npm install -g serve
-
-# Создаем пользователя для запуска приложения
-RUN addgroup -S app && adduser -S app -G app
-
-# Создаем директорию для приложения
-WORKDIR /app
-
-# Копируем собранные файлы
-COPY --from=build --chown=app:app /app/build ./build
-
-# Переключаемся на непривилегированного пользователя
-USER app
-
-# Экспозим порт
-EXPOSE 3000
-
-# Запускаем serve
-CMD ["serve", "-s", "build", "-l", "3000"] 
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+EXPOSE 80 
