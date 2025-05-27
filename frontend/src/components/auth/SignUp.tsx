@@ -16,6 +16,7 @@ const SignUp: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const navigate = useNavigate();
   const { signup, error, loading } = useAuth();
@@ -45,12 +46,15 @@ const SignUp: React.FC = () => {
     }
     
     setFormError(null);
+    setIsSubmitting(true);
 
     try {
       await signup(username, password);
       navigate('/');
     } catch (err) {
       console.error('Registration failed', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -89,6 +93,7 @@ const SignUp: React.FC = () => {
             autoFocus
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            disabled={isSubmitting}
           />
           <TextField
             margin="normal"
@@ -101,6 +106,7 @@ const SignUp: React.FC = () => {
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            disabled={isSubmitting}
           />
           <TextField
             margin="normal"
@@ -113,6 +119,7 @@ const SignUp: React.FC = () => {
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            disabled={isSubmitting}
           />
 
           <Button
@@ -120,9 +127,9 @@ const SignUp: React.FC = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2, py: 1.5 }}
-            disabled={loading || !username || !password || !confirmPassword}
+            disabled={loading || isSubmitting || !username || !password || !confirmPassword}
           >
-            {loading ? <CircularProgress size={24} color="inherit" /> : 'Зарегистрироваться'}
+            {(loading || isSubmitting) ? <CircularProgress size={24} color="inherit" /> : 'Зарегистрироваться'}
           </Button>
 
           <Box sx={{ mt: 1, textAlign: 'center' }}>

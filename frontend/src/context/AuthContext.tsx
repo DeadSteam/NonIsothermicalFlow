@@ -1,16 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authService } from '../services/api/api';
 import { User } from '../types/User';
-
-interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-  login: (username: string, password: string) => Promise<void>;
-  signup: (username: string, password: string) => Promise<void>;
-  logout: () => void;
-  checkAuth: () => Promise<boolean>;
-}
+import { AuthContextType } from '../types/Auth';
+import { authService } from '../services/api/api';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -56,7 +47,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Функция входа
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string): Promise<User> => {
     setLoading(true);
     setError(null);
 
@@ -66,19 +57,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Сохраняем информацию о пользователе в localStorage
       localStorage.setItem('user', JSON.stringify(response));
       setUser(response);
+      return response;
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message || 'Ошибка аутентификации');
       } else {
         setError('Произошла неизвестная ошибка');
       }
+      throw err;
     } finally {
       setLoading(false);
     }
   };
 
   // Функция регистрации
-  const signup = async (username: string, password: string) => {
+  const signup = async (username: string, password: string): Promise<User> => {
     setLoading(true);
     setError(null);
 
@@ -88,12 +81,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Сохраняем информацию о пользователе в localStorage
       localStorage.setItem('user', JSON.stringify(response));
       setUser(response);
+      return response;
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message || 'Ошибка регистрации');
       } else {
         setError('Произошла неизвестная ошибка');
       }
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -105,8 +100,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
   };
 
+  const contextValue: AuthContextType = {
+    user,
+    loading,
+    error,
+    login,
+    signup,
+    logout,
+    checkAuth
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, signup, logout, checkAuth }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

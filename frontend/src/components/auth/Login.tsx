@@ -42,6 +42,7 @@ const Login: React.FC = () => {
       // После успешного входа перенаправление произойдет через useEffect
     } catch (err) {
       console.error('Login failed:', err);
+    } finally {
       setIsSubmitting(false);
     }
   };

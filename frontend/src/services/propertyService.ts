@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getApiUrl } from '../config/api.config';
+import { API_CONFIG } from '../config/api.config';
 
 export interface MaterialProperty {
   id: string;
@@ -10,6 +10,7 @@ export interface MaterialProperty {
 
 // Создаю экземпляр axios с авторизацией
 const propertyApi = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -27,26 +28,41 @@ propertyApi.interceptors.request.use((config) => {
   return config;
 });
 
-export const getAllProperties = async (): Promise<MaterialProperty[]> => {
-  const response = await propertyApi.get(getApiUrl('/material-properties'));
-  return response.data;
+// Обработка ошибок
+propertyApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || 'Произошла ошибка при выполнении запроса');
+    }
+    throw new Error('Сервер недоступен. Пожалуйста, попробуйте позже.');
+  }
+);
+
+export const propertyService = {
+  getAllProperties: async (): Promise<MaterialProperty[]> => {
+    const response = await propertyApi.get('/material-properties');
+    return response.data;
+  },
+
+  getPropertyById: async (id: string): Promise<MaterialProperty> => {
+    const response = await propertyApi.get(`/material-properties/${id}`);
+    return response.data;
+  },
+
+  createProperty: async (property: Omit<MaterialProperty, 'id'>): Promise<MaterialProperty> => {
+    const response = await propertyApi.post('/material-properties', property);
+    return response.data;
+  },
+
+  updateProperty: async (id: string, property: Partial<MaterialProperty>): Promise<MaterialProperty> => {
+    const response = await propertyApi.put(`/material-properties/${id}`, property);
+    return response.data;
+  },
+
+  deleteProperty: async (id: string): Promise<void> => {
+    await propertyApi.delete(`/material-properties/${id}`);
+  }
 };
 
-export const getPropertyById = async (id: string): Promise<MaterialProperty> => {
-  const response = await propertyApi.get(getApiUrl(`/material-properties/${id}`));
-  return response.data;
-};
-
-export const createProperty = async (property: Omit<MaterialProperty, 'id'>): Promise<MaterialProperty> => {
-  const response = await propertyApi.post(getApiUrl('/material-properties'), property);
-  return response.data;
-};
-
-export const updateProperty = async (id: string, property: Partial<MaterialProperty>): Promise<MaterialProperty> => {
-  const response = await propertyApi.put(getApiUrl(`/material-properties/${id}`), property);
-  return response.data;
-};
-
-export const deleteProperty = async (id: string): Promise<void> => {
-  await propertyApi.delete(getApiUrl(`/material-properties/${id}`));
-}; 
+export default propertyService; 

@@ -11,13 +11,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * REST контроллер для API управления резервными копиями баз данных
+ * Контроллер для API управления резервными копиями баз данных
  */
 @RestController
 @RequestMapping("/api/v1/admin/backups")
@@ -35,9 +36,15 @@ public class DatabaseBackupController {
      */
     @GetMapping
     public ResponseEntity<List<DatabaseBackup>> getAllBackups() {
-        log.info("Запрос на получение списка всех резервных копий");
-        List<DatabaseBackup> backups = backupService.getAllBackups();
-        return ResponseEntity.ok(backups);
+        try {
+            log.info("Запрос на получение списка всех резервных копий");
+            List<DatabaseBackup> backups = backupService.getAllBackups();
+            return ResponseEntity.ok(backups);
+        } catch (Exception e) {
+            log.error("Ошибка при получении списка резервных копий", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "Ошибка при получении списка резервных копий: " + e.getMessage());
+        }
     }
 
     /**
@@ -46,15 +53,15 @@ public class DatabaseBackupController {
      * @return созданные резервные копии
      */
     @PostMapping
-    public ResponseEntity<?> createBackup() {
+    public ResponseEntity<List<DatabaseBackup>> createBackup() {
         try {
             log.info("Запрос на создание резервной копии БД");
             List<DatabaseBackup> createdBackups = backupService.createBackup();
-            return ResponseEntity.ok(createdBackups);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdBackups);
         } catch (IOException e) {
             log.error("Ошибка при создании резервной копии", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Ошибка при создании резервной копии: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Ошибка при создании резервной копии: " + e.getMessage());
         }
     }
 
@@ -65,14 +72,15 @@ public class DatabaseBackupController {
      * @return информация о резервной копии
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getBackupById(@PathVariable UUID id) {
+    public ResponseEntity<DatabaseBackup> getBackupById(@PathVariable UUID id) {
         try {
             log.info("Запрос на получение резервной копии с id: {}", id);
             DatabaseBackup backup = backupService.getBackupById(id);
             return ResponseEntity.ok(backup);
         } catch (IllegalArgumentException e) {
             log.warn("Ошибка запроса резервной копии: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Резервная копия не найдена: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
+                    "Резервная копия не найдена: " + e.getMessage());
         }
     }
 
@@ -95,10 +103,12 @@ public class DatabaseBackupController {
                     .body(resource);
         } catch (IllegalArgumentException e) {
             log.warn("Ошибка запроса скачивания: {}", e.getMessage());
-            return ResponseEntity.notFound().build();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
+                    "Резервная копия не найдена: " + e.getMessage());
         } catch (IOException e) {
             log.error("Ошибка при скачивании файла", e);
-            return ResponseEntity.internalServerError().build();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Ошибка при скачивании файла: " + e.getMessage());
         }
     }
 
@@ -106,23 +116,24 @@ public class DatabaseBackupController {
      * Восстановление базы данных из резервной копии
      *
      * @param id идентификатор резервной копии
-     * @return результат операции
+     * @return сообщение об успешном восстановлении
      */
     @PostMapping("/{id}/restore")
-    public ResponseEntity<?> restoreBackup(@PathVariable UUID id) {
+    public ResponseEntity<String> restoreBackup(@PathVariable UUID id) {
         try {
             log.info("Запрос на восстановление базы данных из резервной копии с id: {}", id);
             DatabaseBackup backup = backupService.getBackupById(id);
             backupService.restoreBackup(id);
-            return ResponseEntity.ok().body("База данных " + backup.getDatabase() + 
+            return ResponseEntity.ok("База данных " + backup.getDatabase() + 
                     " успешно восстановлена из резервной копии: " + backup.getFilename());
         } catch (IllegalArgumentException e) {
             log.warn("Ошибка запроса восстановления: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Резервная копия не найдена: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
+                    "Резервная копия не найдена: " + e.getMessage());
         } catch (IOException e) {
             log.error("Ошибка при восстановлении базы данных", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Ошибка при восстановлении базы данных: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Ошибка при восстановлении базы данных: " + e.getMessage());
         }
     }
 
@@ -130,22 +141,22 @@ public class DatabaseBackupController {
      * Удаление резервной копии
      *
      * @param id идентификатор резервной копии
-     * @return результат операции
+     * @return пустой ответ с кодом 204
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteBackup(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteBackup(@PathVariable UUID id) {
         try {
             log.info("Запрос на удаление резервной копии с id: {}", id);
-            DatabaseBackup backup = backupService.getBackupById(id);
             backupService.deleteBackup(id);
-            return ResponseEntity.ok().body("Резервная копия " + backup.getFilename() + " успешно удалена");
+            return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             log.warn("Ошибка запроса удаления: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Резервная копия не найдена: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
+                    "Резервная копия не найдена: " + e.getMessage());
         } catch (IOException e) {
             log.error("Ошибка при удалении резервной копии", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Ошибка при удалении резервной копии: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Ошибка при удалении резервной копии: " + e.getMessage());
         }
     }
 } 

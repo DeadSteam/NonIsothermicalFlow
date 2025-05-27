@@ -6,57 +6,98 @@ import com.example.nonisothermicalflow.users.model.User;
 import com.example.nonisothermicalflow.users.model.UserRole;
 import com.example.nonisothermicalflow.users.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Контроллер для API управления пользователями
+ */
 @RestController
 @RequestMapping("/api/v1/users")
-@CrossOrigin(origins = "*", maxAge = 3600)
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-
+    /**
+     * Получение информации о текущем пользователе
+     *
+     * @return информация о текущем пользователе
+     */
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(new MessageResponse("Пользователь не аутентифицирован"));
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Пользователь не аутентифицирован");
+            }
+            
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            User user = userService.findById(userDetails.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+            
+            return ResponseEntity.ok(user);
+        } catch (EntityNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "Ошибка при получении информации о пользователе: " + e.getMessage());
         }
-        
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        User user = userService.findById(userDetails.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
-        
-        return ResponseEntity.ok(user);
     }
 
+    /**
+     * Получение списка всех пользователей
+     *
+     * @return список всех пользователей
+     */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.findAll();
-        return ResponseEntity.ok(users);
+        try {
+            List<User> users = userService.findAll();
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "Ошибка при получении списка пользователей: " + e.getMessage());
+        }
     }
 
+    /**
+     * Получение информации о пользователе по ID
+     *
+     * @param id идентификатор пользователя
+     * @return информация о пользователе
+     */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or authentication.principal.id == #id")
     public ResponseEntity<?> getUserById(@PathVariable UUID id) {
-        User user = userService.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден с ID: " + id));
-        return ResponseEntity.ok(user);
+        try {
+            User user = userService.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден с ID: " + id));
+            return ResponseEntity.ok(user);
+        } catch (EntityNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "Ошибка при получении информации о пользователе: " + e.getMessage());
+        }
     }
     
+    /**
+     * Создание нового пользователя
+     *
+     * @param createUserRequest данные для создания пользователя
+     * @return созданный пользователь
+     */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createUser(@RequestBody CreateUserRequest createUserRequest) {
@@ -71,18 +112,27 @@ public class UserController {
                 role
             );
             
-            return ResponseEntity.ok(newUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "Ошибка при создании пользователя: " + e.getMessage());
         }
     }
 
+    /**
+     * Обновление информации о пользователе
+     *
+     * @param id идентификатор пользователя
+     * @param updateRequest данные для обновления
+     * @return обновленный пользователь
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or authentication.principal.id == #id")
     public ResponseEntity<?> updateUser(
             @PathVariable UUID id,
             @RequestBody UpdateUserRequest updateRequest) {
-        
         try {
             UserRole role = null;
             if (updateRequest.getRoleName() != null) {
@@ -98,24 +148,42 @@ public class UserController {
             
             return ResponseEntity.ok(updatedUser);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "Ошибка при обновлении пользователя: " + e.getMessage());
         }
     }
 
+    /**
+     * Удаление пользователя
+     *
+     * @param id идентификатор пользователя
+     * @return сообщение об успешном удалении
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable UUID id) {
-        if (!userService.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
+        try {
+            if (!userService.findById(id).isPresent()) {
+                throw new EntityNotFoundException("Пользователь не найден с ID: " + id);
+            }
+            
+            userService.deleteById(id);
+            return ResponseEntity.ok(new MessageResponse("Пользователь успешно удален"));
+        } catch (EntityNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                    "Ошибка при удалении пользователя: " + e.getMessage());
         }
-        
-        userService.deleteById(id);
-        return ResponseEntity.ok(new MessageResponse("Пользователь успешно удален"));
     }
     
-    // Класс для запроса создания пользователя
+    /**
+     * Класс для запроса создания пользователя
+     */
     public static class CreateUserRequest {
         private String username;
         private String password;
@@ -146,7 +214,9 @@ public class UserController {
         }
     }
 
-    // Класс для запроса обновления пользователя
+    /**
+     * Класс для запроса обновления пользователя
+     */
     public static class UpdateUserRequest {
         private String username;
         private String password;

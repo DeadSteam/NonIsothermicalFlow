@@ -60,27 +60,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost",
-            "http://localhost:80",
-            "http://localhost:8080",
-            "http://88.201.220.74",
-            "http://88.201.220.74:80",
-            "http://88.201.220.74:8080",
-            "http://88.201.220.74:443",
-            "https://88.201.220.74",
-            "https://88.201.220.74:80",
-            "https://88.201.220.74:8080",
-            "https://88.201.220.74:443"
-        ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
-        configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization", "Content-Type", "X-Auth-Token", "Origin", 
-            "Accept", "X-Requested-With", "Access-Control-Request-Method", 
-            "Access-Control-Request-Headers"
-        ));
+        configuration.setAllowedOrigins(Collections.singletonList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token", "Origin", "Accept", "X-Requested-With", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
@@ -98,18 +82,17 @@ public class SecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/api/v1/test/**").permitAll()
-                .requestMatchers("/api/v1/public/**").permitAll()
+                .requestMatchers("/api/v1/auth/**", "/v1/auth/**", "/auth/**").permitAll()
+                .requestMatchers("/api/v1/test/**", "/v1/test/**", "/test/**").permitAll()
+                .requestMatchers("/api/v1/public/**", "/v1/public/**", "/public/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/api/v1/materials/**").permitAll()
-                .requestMatchers("/api/v1/material-properties/**").permitAll()
-                .requestMatchers("/api/v1/material-coefficients/**").permitAll()
-                .requestMatchers("/api/v1/material-coefficient-values/**").permitAll()
-                .requestMatchers("/api/v1/material-properties/**").permitAll()
-                .requestMatchers("/api/v1/math/**").permitAll()
+                .requestMatchers("/api/v1/materials/**", "/v1/materials/**", "/materials/**").permitAll()
+                .requestMatchers("/api/v1/material-properties/**", "/v1/material-properties/**", "/material-properties/**").permitAll()
+                .requestMatchers("/api/v1/material-coefficients/**", "/v1/material-coefficients/**", "/material-coefficients/**").permitAll()
+                .requestMatchers("/api/v1/material-coefficient-values/**", "/v1/material-coefficient-values/**", "/material-coefficient-values/**").permitAll()
+                .requestMatchers("/api/v1/math/**", "/v1/math/**", "/math/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/admin/**", "/v1/admin/**", "/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             );
 
