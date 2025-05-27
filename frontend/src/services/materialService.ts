@@ -1,12 +1,14 @@
 import axios from 'axios';
-import { API_CONFIG } from '../config/api.config';
-import { Material as MaterialType, MaterialPropertyValue, MaterialCoefficientValue } from '../types/material.types';
+import { getApiUrl } from '../config/api.config';
+import { Material as MaterialType, MaterialPropertyValue, MaterialCoefficientValue, MaterialProperty, EmpiricalCoefficient } from '../types/material.types';
+import { getAllProperties } from '../services/propertyService';
+import { getAllCoefficients } from '../services/coefficientService';
 
 export type Material = MaterialType;
+export type { MaterialPropertyValue, MaterialCoefficientValue };
 
 // Создаю axios-инстанс с авторизацией
 const materialApi = axios.create({
-  baseURL: API_CONFIG.BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -24,76 +26,171 @@ materialApi.interceptors.request.use((config) => {
   return config;
 });
 
-// Обработка ошибок
-materialApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || 'Произошла ошибка при выполнении запроса');
-    }
-    throw new Error('Сервер недоступен. Пожалуйста, попробуйте позже.');
-  }
-);
-
-export const materialService = {
-  getAllMaterials: async (): Promise<Material[]> => {
-    const response = await materialApi.get('/materials');
+export const getAllMaterials = async (): Promise<Material[]> => {
+  try {
+    console.log('Запрос списка материалов');
+    const response = await materialApi.get(getApiUrl('/materials'));
+    console.log('Ответ от сервера:', response.data);
     return response.data;
-  },
-
-  getMaterialById: async (id: string): Promise<Material> => {
-    const response = await materialApi.get(`/materials/${id}`);
-    return response.data;
-  },
-
-  createMaterial: async (material: Omit<Material, 'id'>): Promise<Material> => {
-    const response = await materialApi.post('/materials', material);
-    return response.data;
-  },
-
-  updateMaterial: async (id: string, material: Partial<Material>): Promise<Material> => {
-    const response = await materialApi.put(`/materials/${id}`, material);
-    return response.data;
-  },
-
-  deleteMaterial: async (id: string): Promise<void> => {
-    await materialApi.delete(`/materials/${id}`);
-  },
-
-  // Методы для работы со свойствами материала
-  getMaterialProperties: async (materialId: string): Promise<MaterialPropertyValue[]> => {
-    const response = await materialApi.get(`/material-properties/material/${materialId}`);
-    return response.data;
-  },
-
-  updateMaterialProperty: async (
-    materialId: string,
-    propertyId: string,
-    value: number
-  ): Promise<MaterialPropertyValue> => {
-    const response = await materialApi.put(`/material-properties/material/${materialId}/property/${propertyId}`, {
-      value
-    });
-    return response.data;
-  },
-
-  // Методы для работы с коэффициентами материала
-  getMaterialCoefficients: async (materialId: string): Promise<MaterialCoefficientValue[]> => {
-    const response = await materialApi.get(`/material-coefficient-values/material/${materialId}`);
-    return response.data;
-  },
-
-  updateMaterialCoefficient: async (
-    materialId: string,
-    coefficientId: string,
-    value: number
-  ): Promise<MaterialCoefficientValue> => {
-    const response = await materialApi.put(
-      `/material-coefficient-values/material/${materialId}/coefficient/${coefficientId}`,
-      { value }
-    );
-    return response.data;
+  } catch (error) {
+    console.error('Ошибка при получении списка материалов:', error);
+    throw error;
   }
 };
 
-export default materialService; 
+export const getMaterialById = async (id: string): Promise<Material> => {
+  const response = await materialApi.get(getApiUrl(`/materials/${id}`));
+  return response.data;
+};
+
+export const createMaterial = async (material: Omit<Material, 'id'>): Promise<Material> => {
+  const response = await materialApi.post(getApiUrl('/materials'), material);
+  return response.data;
+};
+
+export const updateMaterial = async (id: string, material: Partial<Material>): Promise<Material> => {
+  try {
+    console.log(`Обновление материала: id=${id}`);
+    console.log('Данные для обновления:', material);
+    
+    const response = await materialApi.put(getApiUrl(`/materials/${id}`), material);
+    console.log('Ответ от сервера:', response.data);
+    
+    return response.data;
+  } catch (error) {
+    console.error('Ошибка при обновлении материала:', error);
+    throw error;
+  }
+};
+
+export const deleteMaterial = async (id: string): Promise<void> => {
+  await materialApi.delete(getApiUrl(`/materials/${id}`));
+};
+
+// Получение свойств материала
+export const getMaterialProperties = async (materialId: string): Promise<MaterialPropertyValue[]> => {
+  const response = await materialApi.get(getApiUrl(`/material-properties/material/${materialId}`));
+  return response.data;
+};
+
+// Добавление свойства материала
+export const addMaterialProperty = async (
+  materialId: string,
+  propertyId: string,
+  value: number
+): Promise<MaterialPropertyValue> => {
+  try {
+    console.log(`Добавление свойства материала: materialId=${materialId}, propertyId=${propertyId}, value=${value}`);
+    
+    const response = await materialApi.post(getApiUrl(`/material-properties/material/${materialId}/property/${propertyId}`), {
+      value: value
+    });
+    
+    console.log('Ответ сервера при добавлении свойства:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Ошибка при добавлении свойства материала:', error);
+    throw error;
+  }
+};
+
+// Обновление свойства материала
+export const updateMaterialProperty = async (
+  materialId: string,
+  propertyId: string,
+  value: number
+): Promise<MaterialPropertyValue> => {
+  try {
+    console.log(`Обновление свойства материала: materialId=${materialId}, propertyId=${propertyId}, value=${value}`);
+    
+    const response = await materialApi.put(getApiUrl(`/material-properties/material/${materialId}/property/${propertyId}`), {
+      value: value
+    });
+    
+    console.log('Ответ сервера при обновлении свойства:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Ошибка при обновлении свойства материала:', error);
+    throw error;
+  }
+};
+
+// Удаление свойства материала
+export const deleteMaterialProperty = async (
+  materialId: string,
+  propertyId: string
+): Promise<void> => {
+  try {
+    console.log(`Удаление свойства материала: materialId=${materialId}, propertyId=${propertyId}`);
+    
+    const response = await materialApi.delete(getApiUrl(`/material-properties/material/${materialId}/property/${propertyId}`));
+    console.log('Ответ сервера при удалении свойства:', response);
+  } catch (error) {
+    console.error('Ошибка при удалении свойства материала:', error);
+    throw error;
+  }
+};
+
+// Получение коэффициентов материала
+export const getMaterialCoefficients = async (materialId: string): Promise<MaterialCoefficientValue[]> => {
+  const response = await materialApi.get(getApiUrl(`/material-coefficient-values/material/${materialId}`));
+  return response.data;
+};
+
+// Добавление коэффициента материала
+export const addMaterialCoefficient = async (
+  materialId: string,
+  coefficientId: string,
+  value: number
+): Promise<MaterialCoefficientValue> => {
+  try {
+    console.log(`Добавление коэффициента материала: materialId=${materialId}, coefficientId=${coefficientId}, value=${value}`);
+    
+    const response = await materialApi.post(getApiUrl(`/material-coefficient-values/material/${materialId}/coefficient/${coefficientId}`), {
+      value: value
+    });
+    
+    console.log('Ответ сервера при добавлении коэффициента:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Ошибка при добавлении коэффициента материала:', error);
+    throw error;
+  }
+};
+
+// Обновление коэффициента материала
+export const updateMaterialCoefficient = async (
+  materialId: string,
+  coefficientId: string,
+  value: number
+): Promise<MaterialCoefficientValue> => {
+  try {
+    console.log(`Обновление коэффициента материала: materialId=${materialId}, coefficientId=${coefficientId}, value=${value}`);
+    
+    const response = await materialApi.put(getApiUrl(`/material-coefficient-values/material/${materialId}/coefficient/${coefficientId}`), {
+      value: value
+    });
+    
+    console.log('Ответ сервера при обновлении коэффициента:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Ошибка при обновлении коэффициента материала:', error);
+    throw error;
+  }
+};
+
+// Удаление коэффициента материала
+export const deleteMaterialCoefficient = async (
+  materialId: string,
+  coefficientId: string
+): Promise<void> => {
+  try {
+    console.log(`Удаление коэффициента материала: materialId=${materialId}, coefficientId=${coefficientId}`);
+    
+    const response = await materialApi.delete(getApiUrl(`/material-coefficient-values/material/${materialId}/coefficient/${coefficientId}`));
+    console.log('Ответ сервера при удалении коэффициента:', response);
+  } catch (error) {
+    console.error('Ошибка при удалении коэффициента материала:', error);
+    throw error;
+  }
+}; 

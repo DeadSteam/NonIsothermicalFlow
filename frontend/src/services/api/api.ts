@@ -22,18 +22,15 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Обработка ошибок
+// Обработка ошибок авторизации
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (axios.isAxiosError(error)) {
-      if (error.response?.status === 401) {
-        localStorage.removeItem('user');
-        window.location.href = '/login';
-      }
-      throw new Error(error.response?.data?.message || 'Произошла ошибка при выполнении запроса');
+    if (error.response && error.response.status === 401) {
+      // Если получаем 401 Unauthorized, только очищаем localStorage
+      localStorage.removeItem('user');
     }
-    throw new Error('Сервер недоступен. Пожалуйста, попробуйте позже.');
+    return Promise.reject(error);
   }
 );
 
@@ -41,7 +38,7 @@ api.interceptors.response.use(
 export const authService = {
   login: async (username: string, password: string): Promise<User> => {
     try {
-      const response = await api.post<JwtResponse>('/auth/login', { username, password });
+      const response = await api.post<JwtResponse>('/api/v1/auth/login', { username, password });
       
       // Преобразуем ответ с сервера в формат, используемый на клиенте
       const userData: User = {
@@ -62,7 +59,7 @@ export const authService = {
   
   signup: async (username: string, password: string): Promise<User> => {
     try {
-      await api.post('/auth/register', { username, password });
+      await api.post('/api/v1/auth/register', { username, password });
       return await authService.login(username, password);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
@@ -74,12 +71,24 @@ export const authService = {
 
   getCurrentUser: async (): Promise<User> => {
     try {
-      const response = await api.get('/users/me');
-      return {
+      const response = await api.get('/api/v1/users/me');
+      
+      // Получаем текущего пользователя из localStorage для получения токена
+      const userStr = localStorage.getItem('user');
+      let token = '';
+      if (userStr) {
+        token = JSON.parse(userStr).token;
+      }
+      
+      // Преобразуем ответ с сервера в формат, используемый на клиенте
+      const userData: User = {
         id: response.data.id,
         username: response.data.username,
-        role: response.data.role.name === 'ADMIN' ? 'ADMIN' : 'USER'
+        role: response.data.role.name === 'ADMIN' ? 'ADMIN' : 'USER',
+        token: token
       };
+      
+      return userData;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(error.response.data.message || 'Ошибка получения данных пользователя');
