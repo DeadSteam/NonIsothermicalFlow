@@ -1,9 +1,6 @@
 export const API_CONFIG = {
-  // В development используем прокси из package.json, в production - полный URL
-  BASE_URL: process.env.NODE_ENV === 'production' 
-    ? 'http://88.201.220.74/api/v1'
-    : '/api/v1',
-  // Версия API уже включена в BASE_URL
+  // Используем переменную окружения для базового URL
+  BASE_URL: process.env.REACT_APP_API_URL || '/api/v1',
   API_VERSION: ''
 };
 
@@ -13,6 +10,6 @@ export const API_CONFIG = {
  */
 export const getApiUrl = (endpoint: string): string => {
   // Убираем лишние слеши в начале endpoint если они есть
-  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  return `${API_CONFIG.BASE_URL}${cleanEndpoint}`;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  return `${API_CONFIG.BASE_URL}/${cleanEndpoint}`;
 }; 
