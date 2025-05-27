@@ -19,6 +19,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   # База данных пользователей
   postgres-users:
@@ -41,12 +42,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   # Бэкенд
   backend:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
     container_name: backend
     environment:
       - MATERIALS_DB_URL=jdbc:postgresql://postgres-materials:5432/${POSTGRES_MATERIALS_DB}
@@ -60,6 +64,7 @@ services:
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - SERVER_HOST=${SERVER_HOST}
+      - NODE_ENV=production
     ports:
       - "8080:8080"
     volumes:
@@ -78,14 +83,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   # Фронтенд
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
     container_name: frontend
     environment:
+      - NODE_ENV=production
       - REACT_APP_API_URL=/api/v1
     ports:
       - "80:80"
@@ -100,9 +109,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 networks:
   app-network:
+    name: nonisothermicalflow_network
     driver: bridge
   web:
     external: true
@@ -110,4 +121,6 @@ networks:
 
 volumes:
   postgres-materials-data:
-  postgres-users-data: 
+    name: nonisothermicalflow_materials_data
+  postgres-users-data:
+    name: nonisothermicalflow_users_data 
