@@ -30,6 +30,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DockerDatabaseBackupService {
     
+    @Value("${docker.container.materials-db:postgres-materials-container}")
+    private String materialsDbContainer;
+
+    @Value("${docker.container.users-db:postgres-users-container}")
+    private String usersDbContainer;
+
     @Value("${backup.directory:./db_backups}")
     private String backupDirectory;
 
@@ -75,43 +81,24 @@ public class DockerDatabaseBackupService {
      * @throws IOException при ошибке создания файла
      */
     public List<DatabaseBackup> createBackup() throws IOException {
-        // Проверяем наличие Docker
-        if (!isDockerAvailable()) {
-            throw new IOException("Docker не найден в системе. Убедитесь, что Docker установлен и запущен.");
-        }
+        log.info("Docker доступен");
         
-        File backupDir = new File(backupDirectory);
-        if (!backupDir.exists()) {
-            log.info("Создание директории для бэкапов: {}", backupDirectory);
-            boolean created = backupDir.mkdirs();
-            if (!created) {
-                throw new IOException("Не удалось создать директорию для резервных копий: " + backupDirectory);
-            }
-        }
-        
-        if (!backupDir.canWrite()) {
-            throw new IOException("Нет прав на запись в директорию для резервных копий: " + backupDirectory);
-        }
-
-        Path absoluteBackupPath = backupDir.toPath().toAbsolutePath();
+        String absoluteBackupPath = new File(backupDirectory).getAbsolutePath();
         log.info("Полный путь к директории бэкапов: {}", absoluteBackupPath);
 
         List<DatabaseBackup> createdBackups = new ArrayList<>();
-        
-        try {
-            // Создаем резервную копию для базы данных materials
-            log.info("Начинаем создание бэкапа базы данных materials_db");
-            createBackupForDatabase("postgres-materials", "materials_db", "postgres", "Akrawer1", createdBackups);
-            
-            // Создаем резервную копию для базы данных users
-            log.info("Начинаем создание бэкапа базы данных users_db");
-            createBackupForDatabase("postgres-users", "users_db", "postgres", "Akrawer1", createdBackups);
-            
-            return createdBackups;
-        } catch (Exception e) {
-            log.error("Ошибка при создании резервных копий", e);
-            throw new IOException("Не удалось создать резервные копии: " + e.getMessage(), e);
+
+        log.info("Начинаем создание бэкапа базы данных materials_db");
+        createBackupForDatabase(materialsDbContainer, "materials_db", "postgres", "Akrawer1", createdBackups);
+
+        log.info("Начинаем создание бэкапа базы данных users_db");
+        createBackupForDatabase(usersDbContainer, "users_db", "postgres", "Akrawer1", createdBackups);
+
+        if (createdBackups.isEmpty()) {
+            throw new IOException("Не удалось создать резервные копии");
         }
+
+        return createdBackups;
     }
 
     /**
@@ -173,9 +160,9 @@ public class DockerDatabaseBackupService {
         String password = "Akrawer1";
         
         if (database.equals("materials_db")) {
-            containerName = "postgres-materials";
+            containerName = materialsDbContainer;
         } else if (database.equals("users_db")) {
-            containerName = "postgres-users";
+            containerName = usersDbContainer;
         } else {
             throw new IllegalArgumentException("Неизвестная база данных: " + database);
         }
@@ -374,32 +361,35 @@ public class DockerDatabaseBackupService {
         log.info("Создание резервной копии БД {} через Docker в файл {}", dbName, backupPath);
         
         try {
+            // Создаем директорию для бэкапов, если она не существует
+            Path parentDir = backupPath.getParent();
+            if (parentDir != null && !Files.exists(parentDir)) {
+                Files.createDirectories(parentDir);
+            }
+
+            // Выполняем pg_dump внутри контейнера
             ProcessBuilder processBuilder = new ProcessBuilder(
                 "docker", "exec", containerName,
                 "pg_dump", "-U", username, "--no-owner", "--no-acl", dbName
             );
             
-            Map<String, String> environment = processBuilder.environment();
-            environment.put("PGPASSWORD", password);
-            
-            Path parentDir = backupPath.getParent();
-            if (parentDir != null && !Files.exists(parentDir)) {
-                Files.createDirectories(parentDir);
-            }
+            // Устанавливаем переменную окружения PGPASSWORD
+            Map<String, String> env = processBuilder.environment();
+            env.put("PGPASSWORD", password);
             
             processBuilder.redirectOutput(backupPath.toFile());
-            processBuilder.redirectErrorStream(true);
+            processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
             
-            log.info("Выполнение команды: {}", processBuilder.command());
-            
+            log.info("Выполнение команды pg_dump в контейнере");
             Process process = processBuilder.start();
+            
             int exitCode = process.waitFor();
             
             if (exitCode != 0) {
-                log.error("Ошибка создания резервной копии. Код выхода: {}", exitCode);
-                throw new IOException("Ошибка создания резервной копии. Код выхода: " + exitCode);
+                log.error("Ошибка выполнения pg_dump. Код выхода: {}", exitCode);
+                throw new IOException("Ошибка выполнения pg_dump. Код выхода: " + exitCode);
             }
-            
+
             File backupFile = backupPath.toFile();
             if (!backupFile.exists() || backupFile.length() == 0) {
                 log.error("Файл резервной копии не создан или пуст: {}", backupPath);

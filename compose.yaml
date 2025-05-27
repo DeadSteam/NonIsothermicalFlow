@@ -5,6 +5,8 @@ volumes:
     driver: local
   postgres-users-data:
     driver: local
+  db-backups:
+    driver: local
 
 networks:
   app-network:
@@ -24,6 +26,7 @@ services:
     volumes:
       - postgres-materials-data:/var/lib/postgresql/data
       - ./sql/init/materials-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - db-backups:/backups
     networks:
       - app-network
     healthcheck:
@@ -45,6 +48,7 @@ services:
     volumes:
       - postgres-users-data:/var/lib/postgresql/data
       - ./sql/init/users-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - db-backups:/backups
     networks:
       - app-network
     healthcheck:
@@ -87,6 +91,9 @@ services:
       APP_ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     ports:
       - "${BACKEND_PORT}:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - db-backups:/app/db_backups
     depends_on:
       postgres-materials:
         condition: service_healthy

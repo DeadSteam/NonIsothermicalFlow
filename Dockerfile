@@ -24,8 +24,11 @@ RUN ./gradlew build -x test --no-daemon
 # Run stage
 FROM eclipse-temurin:21-jre-alpine
 
-# Установка curl для healthcheck
-RUN apk add --no-cache curl
+# Установка curl для healthcheck и Docker CLI
+RUN apk add --no-cache curl docker-cli postgresql-client
+
+# Создание директории для резервных копий с правильными правами
+RUN mkdir -p /app/db_backups && chmod 777 /app/db_backups
 
 WORKDIR /app
 

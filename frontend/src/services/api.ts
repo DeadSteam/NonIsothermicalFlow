@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, JwtResponse } from '../../types/User';
+import { User, JwtResponse } from '../types/User';
 import { API_CONFIG } from '../config/api.config';
 
 // Create axios instance
