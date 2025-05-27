@@ -7,9 +7,9 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
-COPY --from=build /app/build /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/templates/default.conf.template
-ENV NGINX_PORT=80
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"] 
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=build /app/build ./build
+RUN npm install -g serve
+EXPOSE 3000
+CMD ["serve", "-s", "build", "-l", "3000"] 

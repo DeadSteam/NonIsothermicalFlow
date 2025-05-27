@@ -13,6 +13,20 @@ networks:
     driver: bridge
 
 services:
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx-container
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app-network
+
   postgres-materials:
     image: postgres:15-alpine
     container_name: postgres-materials-container
@@ -89,8 +103,8 @@ services:
       # Настройки администратора
       APP_ADMIN_USERNAME: ${ADMIN_USERNAME}
       APP_ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-    ports:
-      - "${BACKEND_PORT}:8080"
+    expose:
+      - "8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - db-backups:/app/db_backups
@@ -114,12 +128,8 @@ services:
       dockerfile: Dockerfile
     container_name: frontend-container
     restart: always
-    environment:
-      # Настройки для nginx
-      BACKEND_HOST: ${BACKEND_HOST}
-      BACKEND_PORT: ${BACKEND_PORT}
-    ports:
-      - "${FRONTEND_PORT}:80"
+    expose:
+      - "3000"
     depends_on:
       backend:
         condition: service_healthy

@@ -1,130 +1,63 @@
-# Технический контекст
+# Технический контекст проекта
 
-## Технологический стек
+## Стек технологий
 
-### Frontend
-- **Основной фреймворк**: React с TypeScript
-- **Сборка**: Create React App
-- **Стили**: CSS Modules
-- **Раздача статики**: serve
-- **Порт**: 3000
+### Бэкенд
+- Java 23
+- Spring Boot 3.2.3
+- Spring Security с JWT аутентификацией
+- Spring Data JPA
+- PostgreSQL 15
+- Docker для контейнеризации
 
-### Backend
-- **Фреймворк**: Spring Boot
-- **Язык**: Java 23
-- **API**: REST
-- **Аутентификация**: JWT
-- **Порт**: 8080
+### Фронтенд
+- TypeScript
+- React
+- Material-UI
+- Axios для HTTP-запросов
+- React Router для маршрутизации
 
-### Базы данных
-- **СУБД**: PostgreSQL 16
-- **Базы**:
-  - Materials DB (порт 5432)
-  - Users DB (порт 5433)
-- **Volumes**: Постоянное хранение данных
+### Инфраструктура
+- Docker и Docker Compose для оркестрации
+- Nginx для обратного прокси
+- PostgreSQL для баз данных
+- Docker volumes для персистентности данных
 
-### Контейнеризация
-- **Платформа**: Docker
-- **Оркестрация**: Docker Compose
-- **Сети**:
-  - app-network (внутренняя)
-  - web (внешняя)
+## Конфигурация Docker
 
-### Планируемый прокси-сервер (Nginx)
-- **Версия**: Latest stable
-- **SSL/TLS**: Let's Encrypt
-- **Порты**: 80 (HTTP) и 443 (HTTPS)
-- **Функции**:
-  - Reverse proxy
-  - Load balancing
-  - SSL termination
-  - Static content caching
-  - Security headers
-  - Rate limiting
+### Контейнеры
+1. `postgres-materials-container`: База данных материалов
+   - Порт: 5432
+   - Volume: postgres-materials-data
 
-## Конфигурация
+2. `postgres-users-container`: База данных пользователей
+   - Порт: 5432
+   - Volume: postgres-users-data
 
-### Docker Compose
-```yaml
-version: '3.8'
-services:
-  # Базы данных
-  postgres-materials:
-    image: postgres:16-alpine
-    ports: ["5432:5432"]
-    volumes: [postgres-materials-data:/var/lib/postgresql/data]
+3. `backend-container`: Spring Boot приложение
+   - Порт: 8080
+   - Volume: db-backups для резервных копий
 
-  postgres-users:
-    image: postgres:16-alpine
-    ports: ["5433:5433"]
-    volumes: [postgres-users-data:/var/lib/postgresql/data]
+4. `frontend-container`: React приложение
+   - Порт: 80
 
-  # Бэкенд
-  backend:
-    build: .
-    expose: ["8080"]
-    depends_on: [postgres-materials, postgres-users]
+### Сети
+- `app-network`: Общая сеть для всех контейнеров
 
-  # Фронтенд
-  frontend:
-    build: ./frontend
-    ports: ["80:3000"]
-    depends_on: [backend]
-```
+## Базы данных
 
-## Зависимости
+### Materials DB
+- Таблицы для материалов и их свойств
+- Эмпирические коэффициенты
+- Значения свойств материалов
 
-### Frontend
-```json
-{
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "^5.0.0"
-  }
-}
-```
+### Users DB
+- Пользователи и их роли
+- Аутентификация
+- Авторизация
 
-### Backend
-```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
-</dependencies>
-```
-
-## Безопасность
-
-### Текущие меры
-- JWT аутентификация
-- CORS защита
-- Валидация входных данных
-- Изоляция контейнеров
-
-### Планируемые улучшения
-- SSL/TLS шифрование
-- HTTP/2
-- Security headers
-- Rate limiting
-- DDoS protection
-- WAF (Web Application Firewall)
-
-## Мониторинг
-
-### Текущий
-- Docker healthcheck
-- Логи контейнеров
-- Spring Boot Actuator
-
-### Планируемый
-- Nginx access/error logs
-- Prometheus metrics
-- Grafana dashboards
-- ELK stack
-- Alerting system 
+## Резервное копирование
+- Автоматическое создание резервных копий
+- Хранение в директории `db_backups`
+- Возможность восстановления данных
+- Поддержка обеих баз данных 
