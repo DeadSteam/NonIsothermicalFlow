@@ -15,6 +15,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   /**
    * Проверка состояния аутентификации при загрузке приложения
@@ -22,11 +23,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const initAuth = async () => {
       try {
-        await checkAuth();
+        setLoading(true);
+        const storedUser = localStorage.getItem('user');
+        
+        if (!storedUser) {
+          setUser(null);
+          setInitialized(true);
+          return;
+        }
+        
+        const currentUser = await authService.getCurrentUser();
+        setUser(currentUser);
+        localStorage.setItem('user', JSON.stringify(currentUser));
       } catch (err) {
         console.error('Ошибка инициализации аутентификации:', err);
+        localStorage.removeItem('user');
+        setUser(null);
+        setError(err instanceof Error ? err.message : 'Произошла ошибка при проверке аутентификации');
       } finally {
         setLoading(false);
+        setInitialized(true);
       }
     };
     
@@ -38,6 +54,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
    */
   const checkAuth = async (): Promise<boolean> => {
     try {
+      setLoading(true);
       const storedUser = localStorage.getItem('user');
       
       if (!storedUser) {
@@ -55,6 +72,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(null);
       setError(err instanceof Error ? err.message : 'Произошла ошибка при проверке аутентификации');
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -122,11 +141,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     user,
     loading,
     error,
+    initialized,
     login,
     signup,
     logout,
     checkAuth
   };
+
+  // Не рендерим детей, пока не завершится инициализация
+  if (!initialized) {
+    return <div>Загрузка...</div>;
+  }
 
   return (
     <AuthContext.Provider value={contextValue}>

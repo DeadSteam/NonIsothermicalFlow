@@ -16,57 +16,33 @@ import { useAuth } from '../../context/AuthContext';
  * Компонент страницы входа в систему
  */
 const Login: React.FC = () => {
-  // Состояние формы
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login, user, loading, error } = useAuth();
+  
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-
-  // Хуки для навигации и аутентификации
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { login, error: authError, loading: authLoading, user } = useAuth();
-
-  // Получаем предыдущий маршрут для редиректа после входа
-  const from = location.state?.from?.pathname || '/';
+  const [localError, setLocalError] = useState<string | null>(null);
 
   // Редирект если пользователь уже авторизован
   useEffect(() => {
     if (user) {
+      const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     }
-  }, [user, navigate, from]);
+  }, [user, navigate, location]);
 
-  /**
-   * Обработчик отправки формы
-   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Валидация формы
-    if (!username.trim()) {
-      setFormError('Введите логин');
-      return;
-    }
-    
-    if (!password) {
-      setFormError('Введите пароль');
-      return;
-    }
-    
-    if (isSubmitting) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    setFormError(null);
+    if (isSubmitting) return;
 
     try {
-      await login(username.trim(), password);
-      // После успешного входа перенаправление произойдет через useEffect
+      setIsSubmitting(true);
+      setLocalError(null);
+      await login(username, password);
     } catch (err) {
-      console.error('Ошибка входа:', err);
-      setFormError(err instanceof Error ? err.message : 'Произошла ошибка при входе в систему');
+      setLocalError(err instanceof Error ? err.message : 'Произошла ошибка при входе');
     } finally {
       setIsSubmitting(false);
     }
@@ -99,9 +75,9 @@ const Login: React.FC = () => {
             Авторизация
           </Typography>
 
-          {(formError || authError) && (
+          {(error || localError) && (
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-              {formError || authError}
+              {error || localError}
             </Alert>
           )}
 
@@ -117,9 +93,7 @@ const Login: React.FC = () => {
               autoFocus
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              disabled={isSubmitting || authLoading}
-              error={!!formError && !username}
-              helperText={formError && !username ? 'Обязательное поле' : ''}
+              disabled={isSubmitting}
             />
             <TextField
               margin="normal"
@@ -132,9 +106,7 @@ const Login: React.FC = () => {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isSubmitting || authLoading}
-              error={!!formError && !password}
-              helperText={formError && !password ? 'Обязательное поле' : ''}
+              disabled={isSubmitting}
             />
 
             <Button
@@ -142,9 +114,9 @@ const Login: React.FC = () => {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2, py: 1.5 }}
-              disabled={authLoading || isSubmitting || !username || !password}
+              disabled={isSubmitting || loading}
             >
-              {(authLoading || isSubmitting) ? (
+              {(isSubmitting || loading) ? (
                 <CircularProgress size={24} color="inherit" />
               ) : (
                 'Войти'
@@ -159,7 +131,7 @@ const Login: React.FC = () => {
                 to="/signup" 
                 style={{ 
                   textDecoration: 'none',
-                  pointerEvents: isSubmitting || authLoading ? 'none' : 'auto'
+                  pointerEvents: isSubmitting || loading ? 'none' : 'auto'
                 }}
               >
                 <Typography 
@@ -168,7 +140,7 @@ const Login: React.FC = () => {
                   display="inline" 
                   sx={{ 
                     textDecoration: 'underline',
-                    opacity: isSubmitting || authLoading ? 0.5 : 1
+                    opacity: isSubmitting || loading ? 0.5 : 1
                   }}
                 >
                   Регистрация
