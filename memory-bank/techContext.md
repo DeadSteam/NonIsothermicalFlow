@@ -1,66 +1,130 @@
 # Технический контекст
 
-## Используемые технологии
+## Технологический стек
 
-### Бэкенд
-- **Язык программирования**: Java 23
-- **Фреймворк**: Spring Boot 3.2.3
-- **ORM**: Spring Data JPA
-- **API**: Spring REST
-- **Аутентификация**: JWT (JSON Web Tokens)
-- **Безопасность**: Spring Security
-- **Управление зависимостями**: Gradle
-- **Тестирование**: JUnit, Spring Test
+### Frontend
+- **Основной фреймворк**: React с TypeScript
+- **Сборка**: Create React App
+- **Стили**: CSS Modules
+- **Раздача статики**: serve
+- **Порт**: 3000
 
-### Фронтенд
-- **Язык программирования**: TypeScript
-- **Фреймворк**: React 18.2.0
-- **Библиотека компонентов**: Material UI 5.14.3
-- **Маршрутизация**: React Router 6.14.2
-- **HTTP-клиент**: Axios
-- **Управление зависимостями**: npm
-- **Сборка**: React Scripts (Create React App)
-- **Форматирование дат**: date-fns 4.1.0
-- **Визуализация данных**: Chart.js 4.4.1, React Chart.js 5.2.0
-- **Работа с Excel**: xlsx 0.18.5
+### Backend
+- **Фреймворк**: Spring Boot
+- **Язык**: Java 23
+- **API**: REST
+- **Аутентификация**: JWT
+- **Порт**: 8080
 
 ### Базы данных
-- **СУБД**: PostgreSQL
-- **Количество баз данных**: 2
-  - materials_db - для хранения данных о материалах
-  - users_db - для хранения данных пользователей
+- **СУБД**: PostgreSQL 16
+- **Базы**:
+  - Materials DB (порт 5432)
+  - Users DB (порт 5433)
+- **Volumes**: Постоянное хранение данных
 
-### Инфраструктура
-- **Контейнеризация**: Docker
+### Контейнеризация
+- **Платформа**: Docker
 - **Оркестрация**: Docker Compose
-- **Порты**:
-  - 8080 - бэкенд API
-  - 5432 - PostgreSQL materials_db
-  - 5433 - PostgreSQL users_db
-  - 3000 - фронтенд (для разработки)
+- **Сети**:
+  - app-network (внутренняя)
+  - web (внешняя)
 
-## Среда разработки
-- **IDE**: IntelliJ IDEA, VS Code
-- **Контроль версий**: Git
-- **Управление зависимостями**: Gradle, npm
+### Планируемый прокси-сервер (Nginx)
+- **Версия**: Latest stable
+- **SSL/TLS**: Let's Encrypt
+- **Порты**: 80 (HTTP) и 443 (HTTPS)
+- **Функции**:
+  - Reverse proxy
+  - Load balancing
+  - SSL termination
+  - Static content caching
+  - Security headers
+  - Rate limiting
 
-## Текущая конфигурация Docker
-На данный момент в проекте уже частично настроены Docker-контейнеры для баз данных:
-- **postgres-materials**: контейнер с базой данных материалов
-- **postgres-users**: контейнер с базой данных пользователей
+## Конфигурация
 
-## Требования к окружению
-- **Минимальные требования к серверу**:
-  - CPU: 2+ ядра
-  - RAM: 4+ ГБ
-  - Хранилище: 20+ ГБ свободного места
-  - ОС: Linux/Windows с поддержкой Docker
-  - Docker Engine: 20.10+
-  - Docker Compose: 2.0+
+### Docker Compose
+```yaml
+version: '3.8'
+services:
+  # Базы данных
+  postgres-materials:
+    image: postgres:16-alpine
+    ports: ["5432:5432"]
+    volumes: [postgres-materials-data:/var/lib/postgresql/data]
 
-## Технические ограничения
-- Приложение должно быть доступно по HTTPS
-- Необходимо обеспечить резервное копирование баз данных
-- Контейнеры должны автоматически перезапускаться при сбоях
-- Пароли и чувствительные данные должны храниться в переменных среды, а не в коде
-- Необходимо настроить ограничения ресурсов для контейнеров 
+  postgres-users:
+    image: postgres:16-alpine
+    ports: ["5433:5433"]
+    volumes: [postgres-users-data:/var/lib/postgresql/data]
+
+  # Бэкенд
+  backend:
+    build: .
+    expose: ["8080"]
+    depends_on: [postgres-materials, postgres-users]
+
+  # Фронтенд
+  frontend:
+    build: ./frontend
+    ports: ["80:3000"]
+    depends_on: [backend]
+```
+
+## Зависимости
+
+### Frontend
+```json
+{
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.0.0"
+  }
+}
+```
+
+### Backend
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+</dependencies>
+```
+
+## Безопасность
+
+### Текущие меры
+- JWT аутентификация
+- CORS защита
+- Валидация входных данных
+- Изоляция контейнеров
+
+### Планируемые улучшения
+- SSL/TLS шифрование
+- HTTP/2
+- Security headers
+- Rate limiting
+- DDoS protection
+- WAF (Web Application Firewall)
+
+## Мониторинг
+
+### Текущий
+- Docker healthcheck
+- Логи контейнеров
+- Spring Boot Actuator
+
+### Планируемый
+- Nginx access/error logs
+- Prometheus metrics
+- Grafana dashboards
+- ELK stack
+- Alerting system 

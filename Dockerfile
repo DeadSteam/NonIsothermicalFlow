@@ -1,31 +1,23 @@
-# Build stage
+# Этап сборки
 FROM eclipse-temurin:21-jdk-alpine AS builder
-
 WORKDIR /app
 COPY . .
-RUN ./gradlew clean build -x test --no-daemon
+RUN ./gradlew build -x test
 
-# Production stage
+# Этап запуска
 FROM eclipse-temurin:21-jre-alpine
-
 WORKDIR /app
-
-# Установка необходимых утилит
-RUN apk add --no-cache wget
-
-# Копирование артефактов сборки
 COPY --from=builder /app/build/libs/*.jar app.jar
 
-# Проверка наличия файла
-RUN test -e app.jar
+# Установка wget, Docker CLI и curl
+RUN apk add --no-cache wget docker-cli curl
 
-# Настройка переменных среды
-ENV TZ=UTC
+# Настройка переменных окружения для JVM
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
-# Проверка здоровья
+# Проверка здоровья приложения
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget --spider http://localhost:8080/api/actuator/health || exit 1
+  CMD wget --quiet --tries=1 --spider http://localhost:8080/actuator/health || exit 1
 
-# Запуск приложения
+EXPOSE 8080
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"] 

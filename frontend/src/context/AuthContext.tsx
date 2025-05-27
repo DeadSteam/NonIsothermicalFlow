@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(null);
         setError(err instanceof Error ? err.message : 'Произошла ошибка при проверке аутентификации');
       } finally {
-        setLoading(false);
+      setLoading(false);
         setInitialized(true);
       }
     };
@@ -55,13 +55,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const checkAuth = async (): Promise<boolean> => {
     try {
       setLoading(true);
-      const storedUser = localStorage.getItem('user');
-      
-      if (!storedUser) {
-        setUser(null);
-        return false;
-      }
-      
+    const storedUser = localStorage.getItem('user');
+    
+    if (!storedUser) {
+      setUser(null);
+      return false;
+    }
+    
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
       localStorage.setItem('user', JSON.stringify(currentUser));
@@ -128,8 +128,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
    */
   const logout = () => {
     try {
-      localStorage.removeItem('user');
-      setUser(null);
+    localStorage.removeItem('user');
+    setUser(null);
       setError(null);
     } catch (err) {
       console.error('Ошибка при выходе из системы:', err);

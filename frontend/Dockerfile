@@ -1,41 +1,45 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:18-alpine as build
 
-# Установка зависимостей для сборки
-RUN apk add --no-cache python3 make g++
-
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копирование файлов package.json и package-lock.json
+# Копируем package.json и package-lock.json
 COPY package*.json ./
 
-# Установка зависимостей
-RUN npm ci --only=production
+# Устанавливаем зависимости
+RUN npm ci
 
-# Копирование исходного кода
+# Копируем исходный код
 COPY . .
 
-# Сборка приложения
+# Передаем аргумент для API URL
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
+# Собираем приложение
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+FROM node:18-alpine
 
-# Установка необходимых утилит
-RUN apk add --no-cache wget
+# Устанавливаем serve
+RUN npm install -g serve
 
-# Копирование собранного приложения
-COPY --from=builder /app/build /usr/share/nginx/html
+# Создаем пользователя для запуска приложения
+RUN addgroup -S app && adduser -S app -G app
 
-# Копирование конфигурации nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Создаем директорию для приложения
+WORKDIR /app
 
-# Проверка конфигурации nginx
-RUN nginx -t
+# Копируем собранные файлы
+COPY --from=build --chown=app:app /app/build ./build
 
-# Проверка здоровья
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget --spider http://localhost:80 || exit 1
+# Переключаемся на непривилегированного пользователя
+USER app
 
-# Запуск nginx
-CMD ["nginx", "-g", "daemon off;"] 
+# Экспозим порт
+EXPOSE 3000
+
+# Запускаем serve
+CMD ["serve", "-s", "build", "-l", "3000"] 
