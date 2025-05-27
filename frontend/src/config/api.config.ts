@@ -1,7 +1,9 @@
 export const API_CONFIG = {
-  // Используем переменную окружения для базового URL
-  BASE_URL: process.env.REACT_APP_API_URL || '/api/v1',
-  API_VERSION: ''
+  // В production используем полный URL с хостом, в development - относительный путь
+  BASE_URL: process.env.NODE_ENV === 'production'
+    ? `http://${window.location.hostname}`
+    : '',
+  API_VERSION: '/api/v1'
 };
 
 /**
@@ -11,5 +13,5 @@ export const API_CONFIG = {
 export const getApiUrl = (endpoint: string): string => {
   // Убираем лишние слеши в начале endpoint если они есть
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
-  return `${API_CONFIG.BASE_URL}/${cleanEndpoint}`;
+  return `${API_CONFIG.BASE_URL}${API_CONFIG.API_VERSION}/${cleanEndpoint}`;
 }; 
