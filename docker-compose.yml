@@ -59,6 +59,7 @@ services:
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - SERVER_HOST=${SERVER_HOST}
     ports:
       - "8080:8080"
     volumes:
@@ -85,7 +86,7 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     environment:
-      - REACT_APP_API_URL=http://${SERVER_HOST}/api/v1
+      - REACT_APP_API_URL=/api/v1
     ports:
       - "80:80"
     depends_on:
