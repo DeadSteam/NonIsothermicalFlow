@@ -1,7 +1,7 @@
 export const API_CONFIG = {
-  // В production используем полный URL с хостом, в development - относительный путь
+  // В production используем внешний IP, в development - относительный путь
   BASE_URL: process.env.NODE_ENV === 'production'
-    ? `http://${window.location.hostname}`
+    ? 'http://88.201.220.74'
     : '',
   API_VERSION: '/api/v1'
 };
