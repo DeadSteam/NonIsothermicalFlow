@@ -9,9 +9,8 @@ group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 configurations {
@@ -27,7 +26,6 @@ repositories {
 ext {
     set('snippetsDir', file("build/generated-snippets"))
 }
-
 
 dependencies {
     // Spring Boot и другие базовые зависимости
@@ -74,4 +72,19 @@ tasks.named('test') {
 tasks.named('asciidoctor') {
     inputs.dir snippetsDir
     dependsOn test
+}
+
+// Настройка для Java 21
+tasks.withType(JavaCompile) {
+    options.compilerArgs += '--enable-preview'
+    options.release = 21
+}
+
+// Настройка для запуска
+tasks.withType(Test) {
+    jvmArgs += '--enable-preview'
+}
+
+tasks.withType(JavaExec) {
+    jvmArgs += '--enable-preview'
 }

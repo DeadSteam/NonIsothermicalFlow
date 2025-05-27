@@ -9,9 +9,9 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.beans.factory.annotation.Value;
 import javax.sql.DataSource;
 import java.util.HashMap;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 @EnableJpaRepositories(
@@ -30,16 +30,13 @@ public class UsersDatabaseConfig {
     @Value("${spring.datasource.users.password}")
     private String dbPassword;
 
-    @Value("${spring.datasource.users.driver-class-name}")
-    private String driverClassName;
-
     @Bean(name = "usersDataSource")
     public DataSource usersDataSource() {
         return DataSourceBuilder.create()
                 .url(dbUrl)
                 .username(dbUsername)
                 .password(dbPassword)
-                .driverClassName(driverClassName)
+                .driverClassName("org.postgresql.Driver")
                 .build();
     }
 
@@ -56,8 +53,6 @@ public class UsersDatabaseConfig {
         HashMap<String, Object> properties = new HashMap<>();
         properties.put("hibernate.hbm2ddl.auto", "update");
         properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-        properties.put("hibernate.show_sql", "true");
-        properties.put("hibernate.format_sql", "true");
         em.setJpaPropertyMap(properties);
 
         return em;

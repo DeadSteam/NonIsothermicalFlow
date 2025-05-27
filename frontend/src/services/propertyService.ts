@@ -8,7 +8,7 @@ export interface MaterialProperty {
   description: string;
 }
 
-// Создаю экземпляр axios с авторизацией
+// Создаю axios-инстанс с авторизацией
 const propertyApi = axios.create({
   headers: {
     'Content-Type': 'application/json',

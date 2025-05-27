@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
@@ -22,10 +23,10 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
-    @Value("${app.jwt.secret}")
+    @Value("${JWT_SECRET}")
     private String jwtSecret;
 
-    @Value("${app.jwt.expiration}")
+    @Value("${JWT_EXPIRATION}")
     private long jwtExpirationMs;
 
     private Key key;
@@ -33,10 +34,10 @@ public class JwtTokenProvider {
     @PostConstruct
     public void init() {
         try {
-            logger.info("Initializing JWT key from secret");
-            byte[] keyBytes = jwtSecret.getBytes();
+            logger.info("Initializing JWT key");
+            byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
             this.key = Keys.hmacShaKeyFor(keyBytes);
-            logger.info("JWT key initialized successfully from secret");
+            logger.info("JWT key initialized successfully with secure key for HS512");
         } catch (Exception e) {
             logger.error("Error initializing JWT key: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to initialize JWT key", e);

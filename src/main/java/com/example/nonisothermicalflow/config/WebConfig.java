@@ -1,42 +1,26 @@
 package com.example.nonisothermicalflow.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Конфигурация веб-приложения, включая настройки CORS
  */
 @Configuration
+@EnableWebMvc
 public class WebConfig implements WebMvcConfigurer {
-
-    @Value("${spring.web.cors.allowed-origins}")
-    private String[] allowedOrigins;
-
-    @Value("${spring.web.cors.allowed-methods}")
-    private String[] allowedMethods;
-
-    @Value("${spring.web.cors.allowed-headers}")
-    private String[] allowedHeaders;
-
-    @Value("${spring.web.cors.exposed-headers}")
-    private String[] exposedHeaders;
-
-    @Value("${spring.web.cors.max-age}")
-    private long maxAge;
 
     /**
      * Настройка CORS-политики для API
      */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins(allowedOrigins)
-                .allowedMethods(allowedMethods)
-                .allowedHeaders(allowedHeaders)
-                .exposedHeaders(exposedHeaders)
-                .allowCredentials(true)
-                .maxAge(maxAge);
+        registry.addMapping("/api/v1/**")
+                .allowedOrigins("*") // Разрешить запросы с любого источника в режиме разработки
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .maxAge(3600); // Разрешить кэширование preflight-запросов на 1 час
     }
 } 

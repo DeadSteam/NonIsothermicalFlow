@@ -10,9 +10,9 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.beans.factory.annotation.Value;
 import javax.sql.DataSource;
 import java.util.HashMap;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 @EnableJpaRepositories(
@@ -31,9 +31,6 @@ public class DatabaseConfig {
     @Value("${spring.datasource.materials.password}")
     private String dbPassword;
 
-    @Value("${spring.datasource.materials.driver-class-name}")
-    private String driverClassName;
-
     @Primary
     @Bean(name = "materialsDataSource")
     public DataSource materialsDataSource() {
@@ -41,7 +38,7 @@ public class DatabaseConfig {
                 .url(dbUrl)
                 .username(dbUsername)
                 .password(dbPassword)
-                .driverClassName(driverClassName)
+                .driverClassName("org.postgresql.Driver")
                 .build();
     }
 
