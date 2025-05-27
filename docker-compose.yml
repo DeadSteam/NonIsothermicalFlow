@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # База данных материалов
   postgres-materials:
@@ -107,6 +105,7 @@ networks:
     driver: bridge
   web:
     external: true
+    name: web
 
 volumes:
   postgres-materials-data:
