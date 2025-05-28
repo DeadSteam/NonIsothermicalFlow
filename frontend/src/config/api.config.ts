@@ -1,5 +1,7 @@
+const APP_HOST = process.env.REACT_APP_HOST || 'localhost';
+
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost',
+  BASE_URL: `http://${APP_HOST}`,
   API_VERSION: '/api/v1'
 };
  

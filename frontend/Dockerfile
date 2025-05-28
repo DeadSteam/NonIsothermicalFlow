@@ -4,6 +4,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+
+# Создаем файл .env во время сборки
+ARG APP_HOST
+ENV REACT_APP_HOST=${APP_HOST}
+
 RUN npm run build
 
 # Production stage

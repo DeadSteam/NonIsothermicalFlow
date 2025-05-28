@@ -19,6 +19,8 @@ services:
       dockerfile: Dockerfile
     container_name: nginx-container
     restart: always
+    environment:
+      - APP_HOST=${APP_HOST}
     ports:
       - "80:80"
     depends_on:
@@ -81,6 +83,7 @@ services:
       # Spring Boot настройки
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: ${BACKEND_PORT}
+      APP_HOST: ${APP_HOST}
       
       # Настройки базы данных материалов
       SPRING_DATASOURCE_MATERIALS_URL: jdbc:postgresql://postgres-materials:5432/${MATERIALS_DB_NAME}
@@ -126,8 +129,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - APP_HOST=${APP_HOST}
     container_name: frontend-container
     restart: always
+    environment:
+      - REACT_APP_HOST=${APP_HOST}
     expose:
       - "3000"
     depends_on:
